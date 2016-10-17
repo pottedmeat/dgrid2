@@ -13,7 +13,7 @@ let viewForGridChildren: {
 	renderMaquette: function() {
 		return h('table.maquette', [this.header, this.body]);
 	}
-}
+};
 
 let emitTbodyClick: (event: MouseEvent) => void;
 let emitTheadClick: (event: MouseEvent) => void;
@@ -43,7 +43,14 @@ class Renderer implements _Renderer {
 		};
 	}
 
+	headerCellForGrid?<T>(grid: Dgrid, column: Column, view?: { render: string }) {
+		return {
+			render: column.label
+		};
+	}
+
 	headerForGrid<T>(grid: Dgrid, columns: Column[], cells: { [key: string]: VNode }, view?: {render: VNode}) {
+		debugger;
 		const state = grid.state;
 
 		if (!emitTheadClick) {
@@ -51,12 +58,12 @@ class Renderer implements _Renderer {
 				emit(grid, {
 					type: 'thead:click'
 				});
-			}
+			};
 		}
 
 		const children: VNode[] = [];
 		for (let column of columns) {
-			children.push(h('th.dgrid-column-' + column.id, [ column ]));
+			children.push(h('th.dgrid-column-' + column.id, [ cells[column.id] ]));
 		}
 
 		return {
@@ -77,7 +84,7 @@ class Renderer implements _Renderer {
 				emit(grid, {
 					type: 'tbody:click'
 				});
-			}
+			};
 		}
 
 		return {

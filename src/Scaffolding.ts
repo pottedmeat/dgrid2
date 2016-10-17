@@ -3,14 +3,16 @@ import View from './interfaces/View';
 
 interface Scaffold {
 	parent?: string;
+	groupChildren?: boolean;
 	on?: string;
+	across?: string;
 }
 
 interface ObjectLiteral {
-	[key: string]: ObjectLiteral;
+	[key: string]: any;
 }
 
-function followPath<T>(context: any, path: string): [ObjectLiteral, GenericFunction<View<T>>] {
+function followPath<T>(context: any, path: string): [ObjectLiteral, any] {
 	const keys = path.split('.');
 	for (let i = 0, il = (keys.length - 1); i < il; i++) {
 		const key = keys[i];
@@ -20,7 +22,7 @@ function followPath<T>(context: any, path: string): [ObjectLiteral, GenericFunct
 		context = context[key];
 	}
 	const key = keys[keys.length - 1];
-	return [context, <any> context[key]];
+	return [context, context[key]];
 }
 
 class Scaffolding {
@@ -55,17 +57,34 @@ class Scaffolding {
 				found = (!info || !info.parent);
 			}
 			if (found) {
-				const [context, view] = followPath(rootContext, path);
-				let args = [rootContext].concat(this.buildFromPath(rootContext, path).map(function(value: View<T>) {
-					return value.render;
-				}));
-				const cache = this.caches[path];
-				if (cache) {
-					args.push(cache);
+				if (info && info.across) {
+					const [, arr] = followPath(rootContext, info.across);
+					arr.forEach(function(value: any, i: number) {
+						// TODO: Cache across (if possible to make assumptions about ids)
+						const [context, view] = followPath(rootContext, path);
+						childViews.push(view.call(context, rootContext, arr[i]));
+					});
 				}
-				const childView: View<any> = view.apply(context, args);
-				this.caches[path] = childView;
-				childViews.push(childView);
+				else {
+					const [context, view] = followPath(rootContext, path);
+					let args = [rootContext];
+					const renderers = this.buildFromPath(rootContext, path).map(function(value: View<T>) {
+						return value.render;
+					});
+					if (info && info.groupChildren) {
+						args.push(renderers);
+					}
+					else {
+						args = args.concat(renderers);
+					}
+					const cache = this.caches[path];
+					if (cache) {
+						args.push(cache);
+					}
+					const childView: View<any> = view.apply(context, args);
+					this.caches[path] = childView;
+					childViews.push(childView);
+				}
 			}
 		}
 		return childViews;

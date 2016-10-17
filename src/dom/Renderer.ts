@@ -20,26 +20,44 @@ class Renderer implements _Renderer {
 		};
 	}
 
-	headerForGrid<T>(grid: Dgrid, columns: Column[], cells: { [key: string]: HTMLElement }, view?: {classesNode: HTMLElement, render: HTMLElement}) {
-		if (!view) {
-			const thead = document.createElement('thead');
+	headerCellForGrid?<T>(grid: Dgrid, column: Column, view?: { render: HTMLElement }) {
+		return {
+			render: document.createTextNode(column.label)
+		};
+	}
+
+	headerForGrid<T>(grid: Dgrid, columns: Column[], cells: { [key: string]: HTMLElement }, view?: {thead: HTMLElement, render: HTMLElement}) {
+		let thead: HTMLElement;
+		if (view) {
+			thead = view.thead;
+		}
+		else {
+			thead = document.createElement('thead');
 			on(thead, 'click', () => {
 				emit(grid, {
 					type: 'thead:click'
 				});
 			});
 			view = {
-				classesNode: thead,
+				thead: thead,
 				render: thead
 			};
 		}
 
+		thead.innerHTML = '';
+		for (let column of columns) {
+			const th = document.createElement('th');
+			th.className = 'th.dgrid-column-' + column.id;
+			th.appendChild(cells[column.id]);
+			thead.appendChild(th);
+		}
+
 		const state = grid.state;
 		if (state['theadFocused']) {
-			view.classesNode.classList.add('thead-focused');
+			thead.classList.add('thead-focused');
 		}
 		else {
-			view.classesNode.classList.remove('thead-focused');
+			thead.classList.remove('thead-focused');
 		}
 		return view;
 	}
