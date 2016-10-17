@@ -47,7 +47,7 @@ class Renderer implements _Renderer {
 		thead.innerHTML = '';
 		for (let column of columns) {
 			const th = document.createElement('th');
-			th.className = 'th.dgrid-column-' + column.id;
+			th.className = 'dgrid-column-' + column.id;
 			th.appendChild(cells[column.id]);
 			thead.appendChild(th);
 		}
