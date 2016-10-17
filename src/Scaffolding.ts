@@ -6,6 +6,7 @@ interface Scaffold {
 	groupChildren?: boolean;
 	on?: string;
 	across?: string;
+	over?: string;
 }
 
 interface ObjectLiteral {

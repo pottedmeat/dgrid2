@@ -50,7 +50,6 @@ class Renderer implements _Renderer {
 	}
 
 	headerForGrid<T>(grid: Dgrid, columns: Column[], cells: { [key: string]: VNode }, view?: {render: VNode}) {
-		debugger;
 		const state = grid.state;
 
 		if (!emitTheadClick) {
