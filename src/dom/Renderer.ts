@@ -5,6 +5,14 @@ import on, { emit } from 'dojo-core/on';
 class Renderer implements _Renderer {
 	domNode: HTMLElement;
 
+	shouldReloadParent(oldRender: HTMLElement, newRender: HTMLElement) {
+		if (oldRender.parentNode) {
+			oldRender.parentNode.replaceChild(newRender, oldRender);
+			return false;
+		}
+		return true;
+	}
+
 	viewForGrid(grid: Dgrid, header: HTMLElement, body: HTMLElement, view?: {domNode: HTMLElement}) {
 		if (view) {
 			return view;
@@ -121,9 +129,9 @@ class Renderer implements _Renderer {
 	}
 
 	rowForGrid(grid: Dgrid, data: any, content: HTMLElement, view?: { render: HTMLElement }) {
-		return {
-			render: content
-		};
+		view = (view || { render: null });
+		view.render = content;
+		return view;
 	}
 
 	rowViewForGrid(grid: Dgrid, data: any, columns: Column[], cells: { [key: string]: HTMLElement }, view?: { tr: HTMLElement, render: HTMLElement }) {
@@ -169,10 +177,11 @@ class Renderer implements _Renderer {
 		return view;
 	}
 
-	cellViewForGrid(grid: Dgrid, data: any, column: Column, view?: { render: HTMLElement }) {
-		return {
-			render: document.createTextNode(data[column.field])
-		};
+	cellViewForGrid(grid: Dgrid, data: any, column: Column, view?: { render: Text }) {
+		console.log('cell:', data.id, column.id);
+		view = (view || { render: null });
+		view.render = document.createTextNode(data[column.field]);
+		return view;
 	}
 }
 

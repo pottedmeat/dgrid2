@@ -25,15 +25,29 @@ function followPath<T>(context: any, path: string): [ObjectLiteral, any] {
 	return [context, context[key]];
 }
 
+function buildCacheKey(path: string, prefill: any[]) {
+	let cacheKey = '';
+	if (prefill && prefill.length) {
+		// TODO: More complicated cache key
+		cacheKey = prefill.map(function(value: any) {
+			return value['id'];
+		}).join(',') + ',';
+	}
+	return (cacheKey + path);
+}
+
 class Scaffolding {
 	byPath: {[key: string]: Scaffold};
 	byAdded: string[];
-	caches: {[key: string]: View<any>};
+	viewCache: {[key: string]: View<any>};
+	childrenCache: {[key: string]: View<any>[]};
+	shouldReloadParent: string;
 
 	constructor() {
 		this.byPath = {};
 		this.byAdded = [];
-		this.caches = {};
+		this.viewCache = {};
+		this.childrenCache = {};
 	}
 
 	add(path: string, info?: Scaffold) {
@@ -41,11 +55,70 @@ class Scaffolding {
 		this.byAdded.push(path);
 	}
 
+	reloadAt<T>(rootContext: any, path?: string, prefill?: any[]) {
+		this.reloadPath(rootContext, path, prefill, false);
+	}
+
+	reloadPath<T>(rootContext: any, path?: string, prefill?: any[], full = true) {
+		const pathsInfo = this.byPath,
+			viewCache = this.viewCache,
+			childrenCache = this.childrenCache,
+			info = pathsInfo[path];
+		let args = [rootContext];
+		if (prefill) {
+			args = args.concat(prefill);
+		}
+
+		const cacheKey = buildCacheKey(path, prefill);
+		let children: View<any>[];
+		if (full) {
+			children = this.buildFromPath(rootContext, path, prefill);
+		}
+		else {
+			children = childrenCache[cacheKey];
+		}
+		const renders = children.map(function(view) {
+			return view.render;
+		});
+		if (info && info.groupChildren) {
+			args.push(renders);
+		}
+		else {
+			args = args.concat(renders);
+		}
+		const oldView = this.viewCache[cacheKey];
+		let oldRender: View<any>;
+		if (oldView) {
+			oldRender = oldView.render;
+			args.push(oldView);
+		}
+
+		const [context, view] = followPath(rootContext, path);
+		const newView = view.apply(context, args);
+		viewCache[cacheKey] = newView;
+		if (oldView) {
+			if (oldView !== newView) {
+				throw 'Expected view to be reused when calling ' + path;
+			}
+			if (oldRender !== newView.render) {
+				const [reloadContext, shouldRoloadParent] = followPath(rootContext, this.shouldReloadParent);
+				if (info.parent && shouldRoloadParent.call(reloadContext, oldView, newView)) {
+					if (prefill && (info.across || info.over)) {
+						prefill.pop();
+					}
+					this.reloadPath(rootContext, info.parent, prefill, false);
+				}
+			}
+		}
+	}
+
 	// return all children of this parent in an array
-	buildFromPath<T>(rootContext: any, rootPath?: string, prefill?: any): View<T>[] {
+	buildFromPath<T>(rootContext: any, rootPath?: string, prefill?: any[]): View<T>[] {
 		let childViews: View<T>[] = [];
 		const paths = this.byAdded,
-			pathsInfo = this.byPath;
+			pathsInfo = this.byPath,
+			viewCache = this.viewCache,
+			childrenCache = this.childrenCache;
 		for (let i = 0, il = paths.length; i < il; i++) {
 			const path = paths[i];
 			const info = pathsInfo[path];
@@ -70,55 +143,66 @@ class Scaffolding {
 					for (let i = 0, il = arr.length; i < il; i++) {
 						// first append the item in the array and its position to the arguments
 						let iargs = args.concat([arr[i]]);
+						// load the cache
+						const cacheKey = buildCacheKey(path, prefill.concat([arr[i]]));
 						// calculate all children (with matching prefilled arguments) and append those
-						const renderers = this.buildFromPath(rootContext, path, prefill.concat([arr[i]])).map(function(value: View<T>) {
-							return value.render;
+						const children = this.buildFromPath(rootContext, path, prefill.concat([arr[i]]));
+						childrenCache[cacheKey] = children;
+						const renders = children.map(function(view) {
+							return view.render;
 						});
 						if (info && info.groupChildren) {
-							iargs.push(renderers);
+							iargs.push(renders);
 						}
 						else {
-							iargs = iargs.concat(renderers);
+							iargs = iargs.concat(renders);
 						}
+
+						const oldView = viewCache[cacheKey];
+						if (oldView) {
+							iargs.push(oldView);
+						}
+
 						// call the method with these arguments
 						const [context, view] = followPath(rootContext, path);
-						childViews.push(view.apply(context, iargs));
+						const newView: View<any> = view.apply(context, iargs);
+						if (oldView && oldView !== newView) {
+							throw 'Expected view to be reused when calling ' + path;
+						}
+						viewCache[cacheKey] = newView;
+						childViews.push(newView);
 					}
 				}
 				else {
-					const [context, view] = followPath(rootContext, path);
-					const renderers = this.buildFromPath(rootContext, path, prefill).map(function(value: View<T>) {
-						return value.render;
+					const cacheKey = buildCacheKey(path, prefill);
+					const children = this.buildFromPath(rootContext, path, prefill);
+					childrenCache[cacheKey] = children;
+					const renders = children.map(function(view) {
+						return view.render;
 					});
 					if (info && info.groupChildren) {
-						args.push(renderers);
+						args.push(renders);
 					}
 					else {
-						args = args.concat(renderers);
+						args = args.concat(renders);
 					}
-					let cacheKey = '';
-					if (prefill) {
-						// TODO: More complicated cache key
-						cacheKey = prefill.map(function(value: any) {
-							return value['id'];
-						}).join(',') + ',';
+
+					const oldView = viewCache[cacheKey];
+					if (oldView) {
+						args.push(oldView);
 					}
-					cacheKey += path;
-					const cache = this.caches[cacheKey];
-					if (cache) {
-						args.push(cache);
+
+					const [context, view] = followPath(rootContext, path);
+					const newView: View<any> = view.apply(context, args);
+					if (oldView && oldView !== newView) {
+						throw 'Expected view to be reused when calling ' + path;
 					}
-					const childView: View<any> = view.apply(context, args);
-					if (!cache || cache !== childView) {
-						if (cache) {
-							// TODO: Notify the renderer that this child has changed
-						}
-						this.caches[cacheKey] = childView;
-					}
-					childViews.push(childView);
+					viewCache[cacheKey] = newView;
+					childViews.push(newView);
 				}
 			}
 		}
+
 		return childViews;
 	}
 

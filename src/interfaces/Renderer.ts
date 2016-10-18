@@ -2,6 +2,7 @@ import Dgrid, { Column } from '../Dgrid';
 import View from './View';
 
 interface Renderer {
+	shouldReloadParent(oldRender: any, newRender: any): boolean;
 	viewForGrid<T extends View<any>>(grid: Dgrid, header: any, body: any, view?: T): T;
 	headerForGrid<T extends View<any>>(grid: Dgrid, content: any, view?: T): T;
 	headerViewForGrid<T extends View<any>>(grid: Dgrid, columns: Column[], cells: { [key: string]: any }, view?: T): T;

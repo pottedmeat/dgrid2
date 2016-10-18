@@ -23,6 +23,12 @@ class Dgrid extends Evented {
 	customize: Customize;
 	scaffolding: Scaffolding;
 
+	reloadData(at: { row?: number, column?: string }) {
+		if ('row' in at) {
+			this.scaffolding.reloadPath(this, 'renderer.rowForGrid', [this.props.collection[at.row]]);
+		}
+	}
+
 	constructor (domNode: HTMLElement, props: DgridProperties) {
 		super();
 
@@ -31,6 +37,7 @@ class Dgrid extends Evented {
 		this.state = {};
 		const scaffolding = this.scaffolding = new Scaffolding();
 
+		scaffolding.shouldReloadParent = 'renderer.shouldReloadParent';
 		scaffolding.add('renderer.viewForGrid');
 		scaffolding.add('renderer.headerForGrid', {
 			parent: 'renderer.viewForGrid'
@@ -124,12 +131,12 @@ class Dgrid extends Evented {
 		on(this, 'thead:click', (event: MouseEvent) => {
 			state['theadFocused'] = !state['theadFocused'];
 			console.log('thead focused:', state['theadFocused']);
-			scaffolding.build(this);
+			scaffolding.reloadAt(this, 'headerViewForGrid');
 		});
 		on(this, 'tbody:click', (event: MouseEvent) => {
 			state['tbodyFocused'] = !state['tbodyFocused'];
 			console.log('tbody focused:', state['tbodyFocused']);
-			scaffolding.build(this);
+			scaffolding.reloadAt(this, 'renderer.bodyForGrid');
 		});
 	}
 }

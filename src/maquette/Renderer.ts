@@ -22,6 +22,10 @@ class Renderer implements _Renderer {
 	projector: Projector;
 	domNode: HTMLElement;
 
+	shouldReloadParent(oldRender: VNode, newRender: VNode) {
+		return true;
+	}
+
 	viewForGrid(grid: Dgrid, header: VNode, body: VNode, view?: {domNode: HTMLElement}) {
 		viewForGridChildren.header = header;
 		viewForGridChildren.body = body;
@@ -44,9 +48,9 @@ class Renderer implements _Renderer {
 	}
 
 	headerForGrid(grid: Dgrid, content: VNode, view?: { render: VNode }) {
-		return {
-			render: content
-		};
+		view = (view || { render: null });
+		view.render = content;
+		return view;
 	}
 
 	headerViewForGrid(grid: Dgrid, columns: Column[], cells: { [key: string]: VNode }, view?: {render: VNode}) {
@@ -65,26 +69,26 @@ class Renderer implements _Renderer {
 			children.push(cells[column.id]);
 		}
 
-		return {
-			render: h('thead', {
-				onclick: emitTheadClick,
-				classes: {
-					'thead-focused': state['theadFocused']
-				}
-			}, children)
-		};
+		view = (view || { render: null });
+		view.render = h('thead', {
+			onclick: emitTheadClick,
+			classes: {
+				'thead-focused': state['theadFocused']
+			}
+		}, children);
+		return view;
 	}
 
 	headerCellForGrid(grid: Dgrid, column: Column, content: VNode, view?: { render: VNode }) {
-		return {
-			render: h('th.dgrid-column-' + column.id, [ content ])
-		};
+		view = (view || { render: null });
+		view.render = h('th.dgrid-column-' + column.id, [ content ]);
+		return view;
 	}
 
 	headerCellViewForGrid?(grid: Dgrid, column: Column, view?: { render: string }) {
-		return {
-			render: column.label
-		};
+		view = (view || { render: null });
+		view.render = column.label;
+		return view;
 	}
 
 	bodyForGrid(grid: Dgrid, rows: VNode[], view?: {render: VNode}) {
@@ -98,20 +102,20 @@ class Renderer implements _Renderer {
 			};
 		}
 
-		return {
-			render: h('tbody', {
-				onclick: emitTbodyClick,
-				classes: {
-					'tbody-focused': state['tbodyFocused']
-				}
-			}, rows)
-		};
+		view = (view || { render: null });
+		view.render = h('tbody', {
+			onclick: emitTbodyClick,
+			classes: {
+				'tbody-focused': state['tbodyFocused']
+			}
+		}, rows);
+		return view;
 	}
 
 	rowForGrid(grid: Dgrid, data: any, content: VNode, view?: { render: VNode }) {
-		return {
-			render: content
-		};
+		view = (view || { render: null });
+		view.render = content;
+		return view;
 	}
 
 	rowViewForGrid(grid: Dgrid, data: any, columns: Column[], cells: { [key: string]: VNode }, view?: { render: VNode }) {
@@ -120,21 +124,22 @@ class Renderer implements _Renderer {
 			children.push(cells[column.id]);
 		}
 
-		return {
-			render: h('tr', children)
-		};
+		view = (view || { render: null });
+		view.render = h('tr', children);
+		return view;
 	}
 
 	cellForGrid(grid: Dgrid, data: any, column: Column, content: VNode, view?: { render: VNode }) {
-		return {
-			render: h('td.dgrid-column-' + column.id, [ content ])
-		};
+		view = (view || { render: null });
+		view.render = h('td.dgrid-column-' + column.id, [ content ]);
+		return view;
 	}
 
 	cellViewForGrid(grid: Dgrid, data: any, column: Column, view?: { render: string }) {
-		return {
-			render: data[column.field]
-		};
+		console.log('cell:', data.id, column.id);
+		view = (view || { render: null });
+		view.render = data[column.field];
+		return view;
 	}
 }
 

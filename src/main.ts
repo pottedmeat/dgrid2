@@ -3,7 +3,7 @@ import { default as createMaquetteGrid } from './maquette/createGrid';
 import Dgrid, { Column } from './Dgrid';
 import { h, VNode } from 'maquette';
 
-const type = 'maquette';
+const type = 'dom';
 
 const div = document.createElement('div');
 document.body.appendChild(div);
@@ -28,19 +28,19 @@ const props = {
 	collection: [
 		{
 			id: 1,
-			age: '21',
+			age: 21,
 			gender: 'M',
 			location: 'Dive Bar'
 		},
 		{
 			id: 2,
-			age: '8',
+			age: 8,
 			gender: 'M',
 			location: 'Playground'
 		},
 		{
 			id: 3,
-			age: '70',
+			age: 70,
 			gender: 'F',
 			location: 'Early Bird Supper'
 		}
@@ -77,3 +77,9 @@ else if (type === 'maquette') {
 	};
 }
 grid.startup();
+setTimeout(function() {
+	props.collection[1].age = 1;
+	props.collection[1].gender = 'F';
+	props.collection[1].location = 'Home';
+	grid.reloadData({ row: 1 });
+}, 3000);
