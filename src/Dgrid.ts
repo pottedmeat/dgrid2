@@ -44,7 +44,6 @@ class Dgrid extends Evented {
 		});
 		scaffolding.add('headerViewForGrid', {
 			parent: 'renderer.headerForGrid',
-			on: 'thead:click',
 			groupChildren: true
 		});
 		scaffolding.add('renderer.headerCellForGrid', {
@@ -56,7 +55,6 @@ class Dgrid extends Evented {
 		});
 		scaffolding.add('renderer.bodyForGrid', {
 			parent: 'renderer.viewForGrid',
-			on: 'tbody:click',
 			groupChildren: true
 		});
 		scaffolding.add('renderer.rowForGrid', {

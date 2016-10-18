@@ -3,7 +3,6 @@ import View from './interfaces/View';
 interface Scaffold {
 	parent?: string;
 	groupChildren?: boolean;
-	on?: string;
 	across?: string;
 	over?: string;
 }
