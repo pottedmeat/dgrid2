@@ -33,7 +33,7 @@ class Dgrid extends Evented {
 
 		scaffolding.add('renderer.viewForGrid');
 		scaffolding.add('renderer.headerForGrid', {
-			parent: 'renderer.viewForGrid',
+			parent: 'renderer.viewForGrid'
 		});
 		scaffolding.add('headerViewForGrid', {
 			parent: 'renderer.headerForGrid',
@@ -43,7 +43,7 @@ class Dgrid extends Evented {
 		scaffolding.add('renderer.headerCellForGrid', {
 			parent: 'headerViewForGrid',
 			across: 'props.columns'
-		})
+		});
 		scaffolding.add('headerCellViewForGrid', {
 			parent: 'renderer.headerCellForGrid'
 		});

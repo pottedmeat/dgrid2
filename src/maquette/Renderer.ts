@@ -127,7 +127,7 @@ class Renderer implements _Renderer {
 
 	cellForGrid(grid: Dgrid, data: any, column: Column, content: VNode, view?: { render: VNode }) {
 		return {
-			render: h('td.dgrid-column-' + column.id, [ content ]) 
+			render: h('td.dgrid-column-' + column.id, [ content ])
 		};
 	}
 

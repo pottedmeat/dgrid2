@@ -45,8 +45,7 @@ class Scaffolding {
 	buildFromPath<T>(rootContext: any, rootPath?: string, prefill?: any): View<T>[] {
 		let childViews: View<T>[] = [];
 		const paths = this.byAdded,
-			pathsInfo = this.byPath,
-			rootInfo = (rootPath ? pathsInfo[rootPath] : null);
+			pathsInfo = this.byPath;
 		for (let i = 0, il = paths.length; i < il; i++) {
 			const path = paths[i];
 			const info = pathsInfo[path];
@@ -97,7 +96,7 @@ class Scaffolding {
 					else {
 						args = args.concat(renderers);
 					}
-					let cacheKey: string = '';
+					let cacheKey = '';
 					if (prefill) {
 						// TODO: More complicated cache key
 						cacheKey = prefill.map(function(value: any) {
