@@ -7,10 +7,12 @@ import Evented from 'dojo-core/Evented';
 export interface Column {
 	id: string;
 	label: string;
+	field?: string;
 }
 
 export interface DgridProperties {
 	columns: Column[];
+	collection: any[];
 }
 
 class Dgrid extends Evented {
@@ -30,35 +32,79 @@ class Dgrid extends Evented {
 		const scaffolding = this.scaffolding = new Scaffolding();
 
 		scaffolding.add('renderer.viewForGrid');
-		scaffolding.add('headerForGrid', {
+		scaffolding.add('renderer.headerForGrid', {
 			parent: 'renderer.viewForGrid',
+		});
+		scaffolding.add('headerViewForGrid', {
+			parent: 'renderer.headerForGrid',
 			on: 'thead:click',
 			groupChildren: true
 		});
-		scaffolding.add('headerCellForGrid', {
-			parent: 'headerForGrid',
+		scaffolding.add('renderer.headerCellForGrid', {
+			parent: 'headerViewForGrid',
 			across: 'props.columns'
+		})
+		scaffolding.add('headerCellViewForGrid', {
+			parent: 'renderer.headerCellForGrid'
 		});
 		scaffolding.add('renderer.bodyForGrid', {
 			parent: 'renderer.viewForGrid',
-			on: 'tbody:click'
+			on: 'tbody:click',
+			groupChildren: true
+		});
+		scaffolding.add('renderer.rowForGrid', {
+			parent: 'renderer.bodyForGrid',
+			over: 'props.collection'
+		});
+		scaffolding.add('rowViewForGrid', {
+			parent: 'renderer.rowForGrid',
+			groupChildren: true
+		});
+		scaffolding.add('renderer.cellForGrid', {
+			parent: 'rowViewForGrid',
+			across: 'props.columns'
+		});
+		scaffolding.add('cellViewForGrid', {
+			parent: 'renderer.cellForGrid'
 		});
 	}
 
-	headerForGrid<T>(grid: Dgrid, children: any[], view?: any) {
+	headerViewForGrid(grid: Dgrid, children: any[], view?: any) {
 		const cells: { [key: string]: any } = {},
 			columns = this.props.columns;
 		for (let i = 0, il = columns.length; i < il; i++) {
 			cells[columns[i].id] = children[i];
 		}
-		return this.renderer.headerForGrid(grid, columns, cells, view);
+		if (this.customize && this.customize.headerViewForGrid) {
+			return this.customize.headerViewForGrid(grid, columns, cells, view);
+		}
+		return this.renderer.headerViewForGrid(grid, columns, cells, view);
 	}
 
-	headerCellForGrid<T>(grid: Dgrid, column: Column, view?: any) {
-		if (this.customize && this.customize.headerCellForGrid) {
-			return this.customize.headerCellForGrid(grid, column, view);
+	headerCellViewForGrid(grid: Dgrid, column: Column, view?: any) {
+		if (this.customize && this.customize.headerCellViewForGrid) {
+			return this.customize.headerCellViewForGrid(grid, column, view);
 		}
-		return this.renderer.headerCellForGrid(grid, column, view);
+		return this.renderer.headerCellViewForGrid(grid, column, view);
+	}
+
+	rowViewForGrid(grid: Dgrid, data: any, children: any[], view?: any) {
+		const cells: { [key: string]: any } = {},
+			columns = this.props.columns;
+		for (let i = 0, il = columns.length; i < il; i++) {
+			cells[columns[i].id] = children[i];
+		}
+		if (this.customize && this.customize.rowViewForGrid) {
+			return this.customize.rowViewForGrid(grid, data, columns, cells, view);
+		}
+		return this.renderer.rowViewForGrid(grid, data, columns, cells, view);
+	}
+
+	cellViewForGrid(grid: Dgrid, data: any, column: Column, view?: any) {
+		if (this.customize && this.customize.cellViewForGrid) {
+			return this.customize.cellViewForGrid(grid, data, column, view);
+		}
+		return this.renderer.cellViewForGrid(grid, data, column, view);
 	}
 
 	startup () {

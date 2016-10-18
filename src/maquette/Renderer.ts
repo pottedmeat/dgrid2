@@ -43,13 +43,13 @@ class Renderer implements _Renderer {
 		};
 	}
 
-	headerCellForGrid?<T>(grid: Dgrid, column: Column, view?: { render: string }) {
+	headerForGrid(grid: Dgrid, content: VNode, view?: { render: VNode }) {
 		return {
-			render: column.label
+			render: content
 		};
 	}
 
-	headerForGrid<T>(grid: Dgrid, columns: Column[], cells: { [key: string]: VNode }, view?: {render: VNode}) {
+	headerViewForGrid(grid: Dgrid, columns: Column[], cells: { [key: string]: VNode }, view?: {render: VNode}) {
 		const state = grid.state;
 
 		if (!emitTheadClick) {
@@ -62,7 +62,7 @@ class Renderer implements _Renderer {
 
 		const children: VNode[] = [];
 		for (let column of columns) {
-			children.push(h('th.dgrid-column-' + column.id, [ cells[column.id] ]));
+			children.push(cells[column.id]);
 		}
 
 		return {
@@ -71,11 +71,23 @@ class Renderer implements _Renderer {
 				classes: {
 					'thead-focused': state['theadFocused']
 				}
-			}, [ h('tr', children) ])
+			}, children)
 		};
 	}
 
-	bodyForGrid(grid: Dgrid, view?: {render: VNode}) {
+	headerCellForGrid(grid: Dgrid, column: Column, content: VNode, view?: { render: VNode }) {
+		return {
+			render: h('th.dgrid-column-' + column.id, [ content ])
+		};
+	}
+
+	headerCellViewForGrid?(grid: Dgrid, column: Column, view?: { render: string }) {
+		return {
+			render: column.label
+		};
+	}
+
+	bodyForGrid(grid: Dgrid, rows: VNode[], view?: {render: VNode}) {
 		const state = grid.state;
 
 		if (!emitTbodyClick) {
@@ -92,7 +104,36 @@ class Renderer implements _Renderer {
 				classes: {
 					'tbody-focused': state['tbodyFocused']
 				}
-			})
+			}, rows)
+		};
+	}
+
+	rowForGrid(grid: Dgrid, data: any, content: VNode, view?: { render: VNode }) {
+		return {
+			render: content
+		};
+	}
+
+	rowViewForGrid(grid: Dgrid, data: any, columns: Column[], cells: { [key: string]: VNode }, view?: { render: VNode }) {
+		const children: VNode[] = [];
+		for (let column of columns) {
+			children.push(cells[column.id]);
+		}
+
+		return {
+			render: h('tr', children)
+		};
+	}
+
+	cellForGrid(grid: Dgrid, data: any, column: Column, content: VNode, view?: { render: VNode }) {
+		return {
+			render: h('td.dgrid-column-' + column.id, [ content ]) 
+		};
+	}
+
+	cellViewForGrid(grid: Dgrid, data: any, column: Column, view?: { render: string }) {
+		return {
+			render: data[column.field]
 		};
 	}
 }

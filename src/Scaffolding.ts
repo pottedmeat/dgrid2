@@ -1,4 +1,3 @@
-import { GenericFunction } from 'dojo-compose/compose';
 import View from './interfaces/View';
 
 interface Scaffold {
@@ -43,13 +42,14 @@ class Scaffolding {
 	}
 
 	// return all children of this parent in an array
-	buildFromPath<T>(rootContext: any, rootPath?: string): View<T>[] {
+	buildFromPath<T>(rootContext: any, rootPath?: string, prefill?: any): View<T>[] {
 		let childViews: View<T>[] = [];
 		const paths = this.byAdded,
-			pathInfo = this.byPath;
+			pathsInfo = this.byPath,
+			rootInfo = (rootPath ? pathsInfo[rootPath] : null);
 		for (let i = 0, il = paths.length; i < il; i++) {
 			const path = paths[i];
-			const info = pathInfo[path];
+			const info = pathsInfo[path];
 			let found = false;
 			if (rootPath) {
 				found = (info && info.parent === rootPath);
@@ -58,18 +58,37 @@ class Scaffolding {
 				found = (!info || !info.parent);
 			}
 			if (found) {
-				if (info && info.across) {
-					const [, arr] = followPath(rootContext, info.across);
-					arr.forEach(function(value: any, i: number) {
-						// TODO: Cache across (if possible to make assumptions about ids)
+				let args = [rootContext];
+				if (prefill) {
+					args = args.concat(prefill);
+				}
+
+				if (info && (info.across || info.over)) {
+					// call each child view (if any) with an element of
+					// the array prefilled
+					prefill = (prefill || []);
+					const [, arr] = followPath(rootContext, info.across || info.over);
+					for (let i = 0, il = arr.length; i < il; i++) {
+						// first append the item in the array and its position to the arguments
+						let iargs = args.concat([arr[i]]);
+						// calculate all children (with matching prefilled arguments) and append those
+						const renderers = this.buildFromPath(rootContext, path, prefill.concat([arr[i]])).map(function(value: View<T>) {
+							return value.render;
+						});
+						if (info && info.groupChildren) {
+							iargs.push(renderers);
+						}
+						else {
+							iargs = iargs.concat(renderers);
+						}
+						// call the method with these arguments
 						const [context, view] = followPath(rootContext, path);
-						childViews.push(view.call(context, rootContext, arr[i]));
-					});
+						childViews.push(view.apply(context, iargs));
+					}
 				}
 				else {
 					const [context, view] = followPath(rootContext, path);
-					let args = [rootContext];
-					const renderers = this.buildFromPath(rootContext, path).map(function(value: View<T>) {
+					const renderers = this.buildFromPath(rootContext, path, prefill).map(function(value: View<T>) {
 						return value.render;
 					});
 					if (info && info.groupChildren) {
@@ -78,12 +97,25 @@ class Scaffolding {
 					else {
 						args = args.concat(renderers);
 					}
-					const cache = this.caches[path];
+					let cacheKey: string = '';
+					if (prefill) {
+						// TODO: More complicated cache key
+						cacheKey = prefill.map(function(value: any) {
+							return value['id'];
+						}).join(',') + ',';
+					}
+					cacheKey += path;
+					const cache = this.caches[cacheKey];
 					if (cache) {
 						args.push(cache);
 					}
 					const childView: View<any> = view.apply(context, args);
-					this.caches[path] = childView;
+					if (!cache || cache !== childView) {
+						if (cache) {
+							// TODO: Notify the renderer that this child has changed
+						}
+						this.caches[cacheKey] = childView;
+					}
 					childViews.push(childView);
 				}
 			}

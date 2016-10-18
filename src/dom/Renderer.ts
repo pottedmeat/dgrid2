@@ -20,13 +20,13 @@ class Renderer implements _Renderer {
 		};
 	}
 
-	headerCellForGrid?<T>(grid: Dgrid, column: Column, view?: { render: HTMLElement }) {
+	headerForGrid(grid: Dgrid, content: HTMLElement, view?: { render: HTMLElement }) {
 		return {
-			render: document.createTextNode(column.label)
+			render: content
 		};
 	}
 
-	headerForGrid<T>(grid: Dgrid, columns: Column[], cells: { [key: string]: HTMLElement }, view?: {thead: HTMLElement, render: HTMLElement}) {
+	headerViewForGrid(grid: Dgrid, columns: Column[], cells: { [key: string]: HTMLElement }, view?: {thead: HTMLElement, render: HTMLElement}) {
 		let thead: HTMLElement;
 		if (view) {
 			thead = view.thead;
@@ -46,10 +46,7 @@ class Renderer implements _Renderer {
 
 		thead.innerHTML = '';
 		for (let column of columns) {
-			const th = document.createElement('th');
-			th.className = 'dgrid-column-' + column.id;
-			th.appendChild(cells[column.id]);
-			thead.appendChild(th);
+			thead.appendChild(cells[column.id]);
 		}
 
 		const state = grid.state;
@@ -59,21 +56,58 @@ class Renderer implements _Renderer {
 		else {
 			thead.classList.remove('thead-focused');
 		}
+
 		return view;
 	}
 
-	bodyForGrid(grid: Dgrid, view?: {classesNode: HTMLElement, render: HTMLElement}) {
-		if (!view) {
-			const tbody = document.createElement('tbody');
+	headerCellForGrid(grid: Dgrid, column: Column, content: HTMLElement, view?: { th: HTMLElement, render: HTMLElement }) {
+		let th: HTMLElement;
+		if (view) {
+			th = view.th;
+		}
+		else {
+			th = document.createElement('th');
+			th.className = 'dgrid-column-' + column.id;
+			view = {
+				th: th,
+				render: th
+			};
+		}
+
+		th.innerHTML = '';
+		th.appendChild(content);
+
+		return view;
+	}
+
+	headerCellViewForGrid?(grid: Dgrid, column: Column, view?: { render: HTMLElement }) {
+		return {
+			render: document.createTextNode(column.label)
+		};
+	}
+
+	bodyForGrid(grid: Dgrid, rows: HTMLElement[], view?: { tbody: HTMLElement, classesNode: HTMLElement, render: HTMLElement }) {
+		let tbody: HTMLElement;
+		if (view) {
+			tbody = view.tbody;
+		}
+		else {
+			tbody = document.createElement('tbody');
 			on(tbody, 'click', () => {
 				emit(grid, {
 					type: 'tbody:click'
 				});
 			});
 			view = {
+				tbody: tbody,
 				classesNode: tbody,
 				render: tbody
 			};
+		}
+
+		tbody.innerHTML = '';
+		for (let row of rows) {
+			tbody.appendChild(row);
 		}
 
 		const state = grid.state;
@@ -84,6 +118,61 @@ class Renderer implements _Renderer {
 			view.classesNode.classList.remove('tbody-focused');
 		}
 		return view;
+	}
+
+	rowForGrid(grid: Dgrid, data: any, content: HTMLElement, view?: { render: HTMLElement }) {
+		return {
+			render: content
+		};
+	}
+
+	rowViewForGrid(grid: Dgrid, data: any, columns: Column[], cells: { [key: string]: HTMLElement }, view?: { tr: HTMLElement, render: HTMLElement }) {
+		let tr: HTMLElement;
+		if (view) {
+			tr = view.tr;
+		}
+		else {
+			tr = document.createElement('tr');
+			view = {
+				tr: tr,
+				render: tr
+			};
+		}
+
+		// TODO: Replace with as little DOM manipulation as possible
+		tr.innerHTML = '';
+		for (let column of columns) {
+			tr.appendChild(cells[column.id]);
+		}
+
+		return view;
+	}
+
+	cellForGrid(grid: Dgrid, data: any, column: Column, content: HTMLElement, view?: { td: HTMLElement, render: HTMLElement }) {
+		let td: HTMLElement;
+		if (view) {
+			td = view.td;
+		}
+		else {
+			td = document.createElement('td');
+			td.className = 'dgrid-column-' + column.id;
+			view = {
+				td: td,
+				render: td
+			};
+		}
+
+		// TODO: Replace with as little DOM manipulation as possible
+		td.innerHTML = '';
+		td.appendChild(content);
+
+		return view;
+	}
+
+	cellViewForGrid(grid: Dgrid, data: any, column: Column, view?: { render: HTMLElement }) {
+		return {
+			render: document.createTextNode(data[column.field])
+		};
 	}
 }
 

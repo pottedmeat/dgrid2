@@ -1,7 +1,6 @@
 interface View<T> {
-	domNode: HTMLElement;
+	domNode?: HTMLElement;
 	render: T;
-	args?: any[];
 }
 
 export default View;
