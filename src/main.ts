@@ -50,7 +50,7 @@ let grid: Dgrid;
 if (type === 'dom') {
 	grid = createDOMGrid(div, props);
 	grid.customize = {
-		bodyCellViewForGrid: function(grid: Dgrid, column: Column, view?: { text: HTMLElement, render: HTMLElement }) {
+		cellViewForGrid: function(grid: Dgrid, data: any, column: Column, view?: { text: HTMLElement, render: HTMLElement }) {
 			if (view) {
 				view.text.innerHTML = column.label;
 				return view;
@@ -69,7 +69,7 @@ if (type === 'dom') {
 else if (type === 'maquette') {
 	grid = createMaquetteGrid(div, props);
 	grid.customize = {
-		bodyCellViewForGrid: function(grid: Dgrid, column: Column, view?: { render: VNode }) {
+		cellViewForGrid: function(grid: Dgrid, data: any, column: Column, view?: { render: VNode }) {
 			return {
 				render: h('span.my', [column.label])
 			};
