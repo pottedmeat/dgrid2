@@ -34,37 +34,39 @@ class Renderer implements _Renderer {
 		};
 	}
 
-	headerViewForGrid(grid: Dgrid, columns: Column[], cells: { [key: string]: HTMLElement }, view?: {thead: HTMLElement, render: HTMLElement}) {
-		let thead: HTMLElement;
+	headerViewForGrid(grid: Dgrid, columns: Column[], cells: { [key: string]: HTMLElement }, view?: {tr: HTMLElement, render: HTMLElement}) {
+		let tr: HTMLElement;
 		if (view) {
-			thead = view.thead;
+			tr = view.tr;
 		}
 		else {
-			thead = document.createElement('thead');
+			const thead = document.createElement('thead');
 			on(thead, 'click', () => {
 				emit(grid, {
 					type: 'thead:click'
 				});
 			});
+			tr = document.createElement('tr');
+			thead.appendChild(tr);
 			view = {
-				thead: thead,
+				tr: tr,
 				render: thead
 			};
 		}
 
-		while (thead.childNodes.length) {
-			thead.removeChild(thead.childNodes[0]);
+		while (tr.childNodes.length) {
+			tr.removeChild(tr.childNodes[0]);
 		}
 		for (let column of columns) {
-			thead.appendChild(cells[column.id]);
+			tr.appendChild(cells[column.id]);
 		}
 
 		const state = grid.state;
 		if (state['theadFocused']) {
-			thead.classList.add('thead-focused');
+			tr.classList.add('thead-focused');
 		}
 		else {
-			thead.classList.remove('thead-focused');
+			tr.classList.remove('thead-focused');
 		}
 
 		return view;

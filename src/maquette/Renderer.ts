@@ -75,7 +75,7 @@ class Renderer implements _Renderer {
 			classes: {
 				'thead-focused': state['theadFocused']
 			}
-		}, children);
+		}, [ h('tr', children) ]);
 		return view;
 	}
 
