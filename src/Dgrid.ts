@@ -1,6 +1,7 @@
 import Scaffolding from './Scaffolding';
 import Customize from './interfaces/Customize';
 import Renderer from './interfaces/Renderer';
+import View from './interfaces/View';
 import on from 'dojo-core/on';
 import Evented from 'dojo-core/Evented';
 
@@ -23,10 +24,38 @@ class Dgrid extends Evented {
 	customize: Customize;
 	scaffolding: Scaffolding;
 
-	reloadData(at: { row?: number, column?: string }) {
-		if ('row' in at) {
-			this.scaffolding.reloadPath(this, 'renderer.rowForGrid', [this.props.collection[at.row]]);
+	reloadData(at?: { row?: number, column?: string }) {
+		let column: Column;
+		if (!at) {
+			this.scaffolding.reloadPath(this, 'renderer.bodyForGrid');
 		}
+		else {
+			if ('column' in at) {
+				for (let possible of this.props.columns) {
+					if (possible.id == at.column) {
+						column = possible;
+						break;
+					}
+				}
+			}
+			if ('row' in at && 'column' in at) {
+				this.scaffolding.reloadPath(this, 'renderer.rowForGrid', [this.props.collection[at.row], column]);
+			}
+			else if ('row' in at) {
+				this.scaffolding.reloadPath(this, 'renderer.rowForGrid', [this.props.collection[at.row]]);
+			}
+			else if ('column' in at) {
+				// should this be done?
+			}
+		}
+	}
+
+	registerView (view: View<any>, identifier: string) {
+		this.scaffolding.registerView(view, identifier);
+	}
+
+	viewWithIdentifier (identifier: string): any {
+		return this.scaffolding.viewWithIdentifier(identifier);
 	}
 
 	constructor (domNode: HTMLElement, props: DgridProperties) {

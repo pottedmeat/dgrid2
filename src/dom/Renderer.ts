@@ -52,7 +52,9 @@ class Renderer implements _Renderer {
 			};
 		}
 
-		thead.innerHTML = '';
+		while (thead.childNodes.length) {
+			thead.removeChild(thead.childNodes[0]);
+		}
 		for (let column of columns) {
 			thead.appendChild(cells[column.id]);
 		}
@@ -82,7 +84,9 @@ class Renderer implements _Renderer {
 			};
 		}
 
-		th.innerHTML = '';
+		while (th.childNodes.length) {
+			th.removeChild(th.childNodes[0]);
+		}
 		th.appendChild(content);
 
 		return view;
@@ -113,7 +117,9 @@ class Renderer implements _Renderer {
 			};
 		}
 
-		tbody.innerHTML = '';
+		while (tbody.childNodes.length) {
+			tbody.removeChild(tbody.childNodes[0]);
+		}
 		for (let row of rows) {
 			tbody.appendChild(row);
 		}
@@ -148,7 +154,9 @@ class Renderer implements _Renderer {
 		}
 
 		// TODO: Replace with as little DOM manipulation as possible
-		tr.innerHTML = '';
+		while (tr.childNodes.length) {
+			tr.removeChild(tr.childNodes[0]);
+		}
 		for (let column of columns) {
 			tr.appendChild(cells[column.id]);
 		}
@@ -171,7 +179,9 @@ class Renderer implements _Renderer {
 		}
 
 		// TODO: Replace with as little DOM manipulation as possible
-		td.innerHTML = '';
+		while (td.childNodes.length) {
+			td.removeChild(td.childNodes[0]);
+		}
 		td.appendChild(content);
 
 		return view;
