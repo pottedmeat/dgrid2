@@ -1,27 +1,20 @@
 import View from './interfaces/View';
 
-interface Scaffold {
-	parent?: string;
-	groupChildren?: boolean;
-	across?: string;
-	over?: string;
-}
-
 interface ObjectLiteral {
 	[key: string]: any;
 }
 
-function followPath<T>(context: any, path: string): [ObjectLiteral, any] {
-	const keys = path.split('.');
-	for (let i = 0, il = (keys.length - 1); i < il; i++) {
-		const key = keys[i];
-		if (!context[key]) {
-			return null;
-		}
-		context = context[key];
-	}
-	const key = keys[keys.length - 1];
-	return [context, context[key]];
+interface Scaffold<T, U extends View<any>> {
+	id: string;
+	context: any;
+	callback: (<T, U extends View<any>>(context: T, view: U) => U) |
+		(<T, U extends View<any>>(context: T, child: any, view: U) => U) |
+		(<T, U extends View<any>>(context: T, child: any, child2: any, view: U) => U) |
+		(<T, U extends View<any>>(context: T, child: any, child2: any, child3: any, view: U) => U) |
+		(<T, U extends View<any>>(context: T, child: any, children: any[], view: U) => U);
+	parent?: string;
+	groupChildren?: boolean;
+	over?: { (): any[] };
 }
 
 function buildCacheKey(path: string, prefill: any[]) {
@@ -35,20 +28,20 @@ function buildCacheKey(path: string, prefill: any[]) {
 	return (cacheKey + path);
 }
 
-class Scaffolding {
-	byPath: {[key: string]: Scaffold};
-	byAdded: string[];
+class Scaffolding<T> {
+	infoByPath: {[key: string]: Scaffold<T, any>};
+	ids: string[];
 	viewCache: { [key: string]: View<any> };
-	visitedPaths: { [key: string]: any[] }; // the ids visited in each .over or .across
-	viewsByPath: { [key: string]: { [key: string]: View<any>[] } }; 
+	visitedPaths: { [key: string]: any[] }; // the ids visited in each .over
+	viewsByPath: { [key: string]: { [key: string]: View<any>[] } };
 	registeredViews: { [key: string]: View<any>[] };
 	staleViews: { [key: string]: View<any>[] };
 	childrenCache: {[key: string]: View<any>[]};
-	shouldReloadParent: string;
+	shouldReloadParent: { (oldRender: any, newRender: any): boolean };
 
 	constructor() {
-		this.byPath = {};
-		this.byAdded = [];
+		this.infoByPath = {};
+		this.ids = [];
 		this.viewCache = {};
 		this.visitedPaths = {};
 		this.viewsByPath = {};
@@ -58,7 +51,7 @@ class Scaffolding {
 	}
 
 	registerView (view: View<any>, identifier: string) {
-		// TODO: When one of the arrays (across/over) along the path
+		// TODO: When one of the arrays (.over) along the path
 		// is removed, check to see if it's in the registered views
 		// and move it from registered to stale
 		let registeredViews = this.registeredViews[identifier];
@@ -79,28 +72,29 @@ class Scaffolding {
 		return null;
 	}
 
-	add(path: string, info?: Scaffold) {
-		this.byPath[path] = info;
-		this.byAdded.push(path);
+	add(info: Scaffold<T, any>) {
+		const id = info.id;
+		this.infoByPath[id] = info;
+		this.ids.push(id);
 	}
 
-	reloadAt<T>(rootContext: any, path?: string, prefill?: any[]) {
+	reloadAt<T>(rootContext: T, path?: string, prefill?: any[]) {
 		this.reloadPath(rootContext, path, prefill, false);
 	}
 
 	private _prefillPaths(fromPath: string) {
-		const byPath = this.byPath;
+		const byPath = this.infoByPath;
 		const paths: string[] = [];
-		
+
 		let path = fromPath;
 		while (true) {
 			const info = byPath[path];
 			if (!info) {
 				break;
 			}
-			const arrPath = (info.across || info.over);
-			if (arrPath) {
-				paths.unshift(arrPath);
+			const arrCallback = info.over;
+			if (arrCallback) {
+				paths.unshift('over');
 			}
 			path = info.parent;
 			if (!path) {
@@ -110,7 +104,7 @@ class Scaffolding {
 		return paths;
 	}
 
-	private _cacheView(view: View<any>, cacheKey: string, prefill: any[], paths: any[]) {
+	private _cacheView(view: View<any>, cacheKey: string, prefill: any[], paths: string[]) {
 		const viewsByPath = this.viewsByPath,
 				viewCache = this.viewCache;
 		if (prefill && paths) {
@@ -131,20 +125,20 @@ class Scaffolding {
 		viewCache[cacheKey] = view;
 	}
 
-	reloadPath<T>(rootContext: any, path?: string, prefill?: any[], full = true) {
-		const pathsInfo = this.byPath,
-			viewCache = this.viewCache,
+	reloadPath<T>(rootContext: any, id?: string, prefill?: any[], full = true) {
+		const pathsInfo = this.infoByPath,
 			childrenCache = this.childrenCache,
-			info = pathsInfo[path];
+			info = pathsInfo[id];
 		let args = [rootContext];
 		if (prefill) {
 			args = args.concat(prefill);
 		}
 
-		const cacheKey = buildCacheKey(path, prefill);
+		const cacheKey = buildCacheKey(id, prefill);
 		let children: View<any>[];
 		if (full) {
-			children = this.buildFromPath(rootContext, path, prefill);
+			children = this.buildFromPath(rootContext, id, prefill);
+			childrenCache[cacheKey] = children;
 		}
 		else {
 			children = childrenCache[cacheKey];
@@ -164,17 +158,15 @@ class Scaffolding {
 			oldRender = oldView.render;
 			args.push(oldView);
 		}
-		const [context, view] = followPath(rootContext, path);
-		const newView = view.apply(context, args);
-		this._cacheView(newView, cacheKey, prefill, this._prefillPaths(path));
+		const newView = info.callback.apply(info.context, args);
+		this._cacheView(newView, cacheKey, prefill, this._prefillPaths(id));
 		if (oldView) {
 			if (oldView !== newView) {
-				throw 'Expected view to be reused when calling ' + path;
+				throw 'Expected view to be reused when calling ' + id;
 			}
 			if (oldRender !== newView.render) {
-				const [reloadContext, shouldRoloadParent] = followPath(rootContext, this.shouldReloadParent);
-				if (info.parent && shouldRoloadParent.call(reloadContext, oldView, newView)) {
-					if (prefill && (info.across || info.over)) {
+				if (info.parent && this.shouldReloadParent.call({}, oldView, newView)) {
+					if (prefill && info.over) {
 						prefill.pop();
 					}
 					this.reloadPath(rootContext, info.parent, prefill, false);
@@ -184,18 +176,18 @@ class Scaffolding {
 	}
 
 	// return all children of this parent in an array
-	buildFromPath<T>(rootContext: any, rootPath?: string, prefill?: any[], prefilledByPaths?: any[]): View<T>[] {
+	buildFromPath<T>(rootContext: T, rootPath?: string, prefill?: any[], prefilledByPaths?: any[]): View<T>[] {
 		let childViews: View<T>[] = [];
-		const paths = this.byAdded,
-			pathsInfo = this.byPath,
+		const ids = this.ids,
+			pathsInfo = this.infoByPath,
 			viewCache = this.viewCache,
 			childrenCache = this.childrenCache,
 			visitedPaths = this.visitedPaths,
 			viewsByPath = this.viewsByPath,
 			registeredViews = this.registeredViews,
 			staleViews = this.staleViews;
-		for (let i = 0, il = paths.length; i < il; i++) {
-			const path = paths[i];
+		for (let i = 0, il = ids.length; i < il; i++) {
+			const path = ids[i];
 			const info = pathsInfo[path];
 			let found = false;
 			if (rootPath) {
@@ -205,18 +197,19 @@ class Scaffolding {
 				found = (!info || !info.parent);
 			}
 			if (found) {
-				let args = [rootContext];
+				let args: any[] = [rootContext];
 				if (prefill) {
 					args = args.concat(prefill);
 				}
 
-				if (info && (info.across || info.over)) {
+				if (info && info.over) {
 					// call each child view (if any) with an element of
 					// the array prefilled
 					prefill = (prefill || []);
 					prefilledByPaths = (prefilledByPaths || []);
-					const arrPath = (info.across || info.over);
-					const [, arr] = followPath(rootContext, arrPath);
+					const arrCallback = info.over;
+					const arr = arrCallback();
+					const arrPath = 'over';
 					const visiting: any[] = [];
 					let visited = visitedPaths[arrPath];
 					if (!visited) {
@@ -256,8 +249,7 @@ class Scaffolding {
 						}
 
 						// call the method with these arguments
-						const [context, view] = followPath(rootContext, path);
-						const newView: View<any> = view.apply(context, iargs);
+						const newView: View<any> = info.callback.apply(info.context, iargs);
 						if (oldView && oldView !== newView) {
 							throw 'Expected view to be reused when calling ' + path;
 						}
@@ -307,8 +299,7 @@ class Scaffolding {
 						args.push(oldView);
 					}
 
-					const [context, view] = followPath(rootContext, path);
-					const newView: View<any> = view.apply(context, args);
+					const newView: View<any> = info.callback.apply(info.context, args);
 					if (oldView && oldView !== newView) {
 						throw 'Expected view to be reused when calling ' + path;
 					}
@@ -321,7 +312,7 @@ class Scaffolding {
 		return childViews;
 	}
 
-	build<T>(rootContext: any): View<T> {
+	build<T>(rootContext: T): View<T> {
 		const childViews = this.buildFromPath<T>(rootContext);
 		if (childViews.length === 1) {
 			return childViews[0];

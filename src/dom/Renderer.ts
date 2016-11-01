@@ -34,13 +34,15 @@ class Renderer implements _Renderer {
 		};
 	}
 
-	headerViewForGrid(grid: Dgrid, columns: Column[], cells: { [key: string]: HTMLElement }, view?: {tr: HTMLElement, render: HTMLElement}) {
-		let tr: HTMLElement;
+	headerViewForGrid(grid: Dgrid, columns: Column[], cells: { [key: string]: HTMLElement }, view?: {thead: HTMLElement, tr: HTMLElement, render: HTMLElement}) {
+		let tr: HTMLElement,
+			thead: HTMLElement;
 		if (view) {
 			tr = view.tr;
+			thead = view.thead;
 		}
 		else {
-			const thead = document.createElement('thead');
+			thead = document.createElement('thead');
 			on(thead, 'click', () => {
 				emit(grid, {
 					type: 'thead:click'
@@ -49,6 +51,7 @@ class Renderer implements _Renderer {
 			tr = document.createElement('tr');
 			thead.appendChild(tr);
 			view = {
+				thead: thead,
 				tr: tr,
 				render: thead
 			};
@@ -63,10 +66,10 @@ class Renderer implements _Renderer {
 
 		const state = grid.state;
 		if (state['theadFocused']) {
-			tr.classList.add('thead-focused');
+			thead.classList.add('thead-focused');
 		}
 		else {
-			tr.classList.remove('thead-focused');
+			thead.classList.remove('thead-focused');
 		}
 
 		return view;

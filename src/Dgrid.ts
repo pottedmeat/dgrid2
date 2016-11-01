@@ -16,33 +16,33 @@ export interface DgridProperties {
 	collection: any[];
 }
 
-class Dgrid extends Evented {
+class Dgrid extends Evented implements Renderer {
 	state: {[key: string]: any};
 	props: DgridProperties;
 	domNode: HTMLElement;
 	renderer: Renderer;
 	customize: Customize;
-	scaffolding: Scaffolding;
+	scaffolding: Scaffolding<any>;
 
 	reloadData(at?: { row?: number, column?: string }) {
 		let column: Column;
 		if (!at) {
-			this.scaffolding.reloadPath(this, 'renderer.bodyForGrid');
+			this.scaffolding.reloadPath(this, 'bodyForGrid');
 		}
 		else {
 			if ('column' in at) {
 				for (let possible of this.props.columns) {
-					if (possible.id == at.column) {
+					if (possible.id === at.column) {
 						column = possible;
 						break;
 					}
 				}
 			}
 			if ('row' in at && 'column' in at) {
-				this.scaffolding.reloadPath(this, 'renderer.rowForGrid', [this.props.collection[at.row], column]);
+				this.scaffolding.reloadPath(this, 'rowForGrid', [this.props.collection[at.row], column]);
 			}
 			else if ('row' in at) {
-				this.scaffolding.reloadPath(this, 'renderer.rowForGrid', [this.props.collection[at.row]]);
+				this.scaffolding.reloadPath(this, 'rowForGrid', [this.props.collection[at.row]]);
 			}
 			else if ('column' in at) {
 				// should this be done?
@@ -66,41 +66,90 @@ class Dgrid extends Evented {
 		this.state = {};
 		const scaffolding = this.scaffolding = new Scaffolding();
 
-		scaffolding.shouldReloadParent = 'renderer.shouldReloadParent';
-		scaffolding.add('renderer.viewForGrid');
-		scaffolding.add('renderer.headerForGrid', {
-			parent: 'renderer.viewForGrid'
+		scaffolding.shouldReloadParent = this.shouldReloadParent.bind(this);
+		scaffolding.add({
+			id: 'viewForGrid',
+			context: this,
+			callback: this.viewForGrid
 		});
-		scaffolding.add('headerViewForGrid', {
-			parent: 'renderer.headerForGrid',
+		scaffolding.add(({
+			id: 'headerForGrid',
+			context: this,
+			callback: this.headerForGrid,
+			parent: 'viewForGrid'
+		}));
+		scaffolding.add({
+			id: 'headerViewForGrid',
+			context: this,
+			callback: this.headerViewForGrid,
+			parent: 'headerForGrid',
 			groupChildren: true
 		});
-		scaffolding.add('renderer.headerCellForGrid', {
+		scaffolding.add({
+			id: 'headerCellForGrid',
+			context: this,
+			callback: this.headerCellForGrid,
 			parent: 'headerViewForGrid',
-			across: 'props.columns'
+			over: () => {
+				return this.props.columns;
+			}
 		});
-		scaffolding.add('headerCellViewForGrid', {
-			parent: 'renderer.headerCellForGrid'
+		scaffolding.add({
+			id: 'headerCellViewForGrid',
+			context: this,
+			callback: this.headerCellViewForGrid,
+			parent: 'headerCellForGrid'
 		});
-		scaffolding.add('renderer.bodyForGrid', {
-			parent: 'renderer.viewForGrid',
+		scaffolding.add({
+			id: 'bodyForGrid',
+			context: this,
+			callback: this.bodyForGrid,
+			parent: 'viewForGrid',
 			groupChildren: true
 		});
-		scaffolding.add('renderer.rowForGrid', {
-			parent: 'renderer.bodyForGrid',
-			over: 'props.collection'
+		scaffolding.add({
+			id: 'rowForGrid',
+			context: this,
+			callback: this.rowForGrid,
+			parent: 'bodyForGrid',
+			over: () => {
+				return this.props.collection;
+			}
 		});
-		scaffolding.add('rowViewForGrid', {
-			parent: 'renderer.rowForGrid',
+		scaffolding.add({
+			id: 'rowViewForGrid',
+			context: this,
+			callback: this.rowViewForGrid,
+			parent: 'rowForGrid',
 			groupChildren: true
 		});
-		scaffolding.add('renderer.cellForGrid', {
+		scaffolding.add({
+			id: 'cellForGrid',
+			context: this,
+			callback: this.cellForGrid,
 			parent: 'rowViewForGrid',
-			across: 'props.columns'
+			over: () => {
+				return this.props.columns;
+			}
 		});
-		scaffolding.add('cellViewForGrid', {
-			parent: 'renderer.cellForGrid'
+		scaffolding.add({
+			id: 'cellViewForGrid',
+			context: this,
+			callback: this.cellViewForGrid,
+			parent: 'cellForGrid'
 		});
+	}
+
+	shouldReloadParent(oldRender: any, newRender: any) {
+		return this.renderer.shouldReloadParent(oldRender, newRender);
+	}
+
+	viewForGrid(grid: Dgrid, header: any, body: any, view?: any) {
+		return this.renderer.viewForGrid(grid, header, body, view);
+	}
+
+	headerForGrid(grid: Dgrid, content: any, view?: any) {
+		return this.renderer.headerForGrid(grid, content, view);
 	}
 
 	headerViewForGrid(grid: Dgrid, children: any[], view?: any) {
@@ -115,11 +164,23 @@ class Dgrid extends Evented {
 		return this.renderer.headerViewForGrid(grid, columns, cells, view);
 	}
 
+	headerCellForGrid(grid: Dgrid, column: Column, content: any, view?: any) {
+		return this.renderer.headerCellForGrid(grid, column, content, view);
+	}
+
 	headerCellViewForGrid(grid: Dgrid, column: Column, view?: any) {
 		if (this.customize && this.customize.headerCellViewForGrid) {
 			return this.customize.headerCellViewForGrid(grid, column, view);
 		}
 		return this.renderer.headerCellViewForGrid(grid, column, view);
+	}
+
+	bodyForGrid(grid: Dgrid, rows: any[], view?: any) {
+		return this.renderer.bodyForGrid(grid, rows, view);
+	}
+
+	rowForGrid(grid: Dgrid, data: any, content: any, view?: any) {
+		return this.renderer.rowForGrid(grid, data, content, view);
 	}
 
 	rowViewForGrid(grid: Dgrid, data: any, children: any[], view?: any) {
@@ -132,6 +193,10 @@ class Dgrid extends Evented {
 			return this.customize.rowViewForGrid(grid, data, columns, cells, view);
 		}
 		return this.renderer.rowViewForGrid(grid, data, columns, cells, view);
+	}
+
+	cellForGrid(grid: Dgrid, data: any, column: Column, content: any, view?: any) {
+		return this.renderer.cellForGrid(grid, data, column, content, view);
 	}
 
 	cellViewForGrid(grid: Dgrid, data: any, column: Column, view?: any) {
@@ -163,7 +228,7 @@ class Dgrid extends Evented {
 		on(this, 'tbody:click', (event: MouseEvent) => {
 			state['tbodyFocused'] = !state['tbodyFocused'];
 			console.log('tbody focused:', state['tbodyFocused']);
-			scaffolding.reloadAt(this, 'renderer.bodyForGrid');
+			scaffolding.reloadAt(this, 'bodyForGrid');
 		});
 	}
 }
