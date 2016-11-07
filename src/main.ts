@@ -3,7 +3,7 @@ import { default as createMaquetteGrid } from './maquette/createGrid';
 import Dgrid, { Column } from './Dgrid';
 import { h, VNode } from 'maquette';
 
-const type = 'dom';
+const type = 'maquette';
 
 const div = document.createElement('div');
 document.body.appendChild(div);

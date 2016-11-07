@@ -1,7 +1,7 @@
 import _Renderer from '../interfaces/Renderer';
 import { createProjector, Projector, h, VNode } from 'maquette';
 import Dgrid, { Column } from '../Dgrid';
-import { emit } from 'dojo-core/on';
+// import { emit } from 'dojo-core/on';
 
 let viewForGridChildren: {
 	header: VNode,
@@ -11,12 +11,11 @@ let viewForGridChildren: {
 	header: null,
 	body: null,
 	renderMaquette: function() {
-		return h('table.maquette', [this.header, this.body]);
+		return h('div.dgrid-maquette.dgrid.dgrid-grid', {
+			role: 'grid'
+		}, [this.header, this.body]);
 	}
 };
-
-let emitTbodyClick: (event: MouseEvent) => void;
-let emitTheadClick: (event: MouseEvent) => void;
 
 class Renderer implements _Renderer {
 	projector: Projector;
@@ -47,41 +46,45 @@ class Renderer implements _Renderer {
 		};
 	}
 
-	headerForGrid(grid: Dgrid, content: VNode, view?: { render: VNode }) {
+	headerForGrid(grid: Dgrid, content: VNode, scrollbarWidth: number, view?: { render: VNode[] }) {
 		view = (view || { render: null });
-		view.render = content;
+		view.render = [
+			h('div.dgrid-header.dgrid-header-row', {
+				role: 'row',
+				style: 'right:' + scrollbarWidth + 'px'
+			}, content),
+			h('div.dgrid-header.dgrid-header-scroll.dgrid-scrollbar-width', {
+				style: 'width:' + scrollbarWidth + 'px'
+			})
+		];
 		return view;
 	}
 
 	headerViewForGrid(grid: Dgrid, columns: Column[], cells: { [key: string]: VNode }, view?: {render: VNode}) {
-		const state = grid.state;
-
-		if (!emitTheadClick) {
-			emitTheadClick = function () {
-				emit(grid, {
-					type: 'thead:click'
-				});
-			};
-		}
-
 		const children: VNode[] = [];
 		for (let column of columns) {
 			children.push(cells[column.id]);
 		}
 
 		view = (view || { render: null });
-		view.render = h('thead', {
-			onclick: emitTheadClick,
-			classes: {
-				'thead-focused': state['theadFocused']
-			}
+		view.render = h('table.dgrid-row-table', {
+			role: 'presentation'
 		}, [ h('tr', children) ]);
 		return view;
 	}
 
 	headerCellForGrid(grid: Dgrid, column: Column, content: VNode, view?: { render: VNode }) {
 		view = (view || { render: null });
-		view.render = h('th.dgrid-column-' + column.id, [ content ]);
+		const classes = ['dgrid-cell'];
+		if (column.id) {
+			classes.push('dgrid-column-' + column.id);
+		}
+		if (column.field) {
+			classes.push('dgrid-field-' + column.field);
+		}
+		view.render = h('th.' + classes.join('.'), {
+			role: 'columnheader'
+		}, [ content ]);
 		return view;
 	}
 
@@ -92,29 +95,18 @@ class Renderer implements _Renderer {
 	}
 
 	bodyForGrid(grid: Dgrid, rows: VNode[], view?: {render: VNode}) {
-		const state = grid.state;
-
-		if (!emitTbodyClick) {
-			emitTbodyClick = function () {
-				emit(grid, {
-					type: 'tbody:click'
-				});
-			};
-		}
-
 		view = (view || { render: null });
-		view.render = h('tbody', {
-			onclick: emitTbodyClick,
-			classes: {
-				'tbody-focused': state['tbodyFocused']
-			}
-		}, rows);
+		view.render = h('div.dgrid-scroller', [
+			h('div.dgrid-content', rows)
+		]);
 		return view;
 	}
 
 	rowForGrid(grid: Dgrid, data: any, content: VNode, view?: { render: VNode }) {
 		view = (view || { render: null });
-		view.render = content;
+		view.render = h('div.dgrid-row', {
+			role: 'row'
+		}, content);
 		return view;
 	}
 
@@ -125,17 +117,25 @@ class Renderer implements _Renderer {
 		}
 
 		view = (view || { render: null });
-		view.render = h('tr', {
+		view.render = h('table.dgrid-row-table', {
+			role: 'presentation',
 			key: data.id
-		}, children);
+		}, [ h('tr', children) ]);
 		return view;
 	}
 
 	cellForGrid(grid: Dgrid, data: any, column: Column, content: VNode, view?: { render: VNode }) {
 		view = (view || { render: null });
-		view.render = h('td.dgrid-column-' + column.id, {
-			key: column.id
-		}, [ content ]);
+		const classes = ['dgrid-cell'];
+		if (column.id) {
+			classes.push('dgrid-column-' + column.id);
+		}
+		if (column.field) {
+			classes.push('dgrid-field-' + column.field);
+		}
+		view.render = h('td.' + classes.join('.'), {
+			role: 'gridcell'
+		}, content);
 		return view;
 	}
 

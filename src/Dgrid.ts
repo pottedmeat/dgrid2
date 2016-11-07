@@ -4,6 +4,7 @@ import Renderer from './interfaces/Renderer';
 import View from './interfaces/View';
 import on from 'dojo-core/on';
 import Evented from 'dojo-core/Evented';
+import has, { add as addHas } from 'dojo-has/has';
 
 export interface Column {
 	id: string;
@@ -15,6 +16,43 @@ export interface DgridProperties {
 	columns: Column[];
 	collection: any[];
 }
+
+const oddClass = 'dgrid-row-odd',
+	evenClass = 'dgrid-row-even';
+let scrollbarWidth = 0, scrollbarHeight = 0;
+
+function byId(id: string) {
+	return document.getElementById(id);
+}
+
+function cleanupTestElement(element: HTMLElement) {
+	element.className = '';
+	if (element.parentNode) {
+		document.body.removeChild(element);
+	}
+}
+
+function getScrollbarSize(element: HTMLElement, dimension: string) {
+	// Used by has tests for scrollbar width/height
+	element.className = 'dgrid-scrollbar-measure';
+	document.body.appendChild(element);
+	const offset: number = (<any>element)['offset' + dimension];
+	const client: number = (<any>element)['client' + dimension];
+	var size: number = offset - client;
+	cleanupTestElement(element);
+	if (false && has('ie')) {
+		// Avoid issues with certain widgets inside in IE7, and
+		// ColumnSet scroll issues with all supported IE versions
+		size++;
+	}
+	return size;
+}
+addHas('dom-scrollbar-width', function () {
+	return getScrollbarSize(document.createElement('div'), 'Width');
+});
+addHas('dom-scrollbar-height', function () {
+	return getScrollbarSize(document.createElement('div'), 'Height');
+});
 
 class Dgrid extends Evented implements Renderer {
 	state: {[key: string]: any};
@@ -149,7 +187,11 @@ class Dgrid extends Evented implements Renderer {
 	}
 
 	headerForGrid(grid: Dgrid, content: any, view?: any) {
-		return this.renderer.headerForGrid(grid, content, view);
+		if (!scrollbarWidth) {
+			// Measure the browser's scrollbar width using a DIV we'll delete right away
+			scrollbarWidth = <number>has('dom-scrollbar-width');
+		}
+		return this.renderer.headerForGrid(grid, content, scrollbarWidth, view);
 	}
 
 	headerViewForGrid(grid: Dgrid, children: any[], view?: any) {

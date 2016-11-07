@@ -4,7 +4,7 @@ import View from './View';
 interface Renderer {
 	shouldReloadParent(oldRender: any, newRender: any): boolean;
 	viewForGrid<T extends View<any>>(grid: Dgrid, header: any, body: any, view?: T): T;
-	headerForGrid<T extends View<any>>(grid: Dgrid, content: any, view?: T): T;
+	headerForGrid<T extends View<any>>(grid: Dgrid, content: any, scrollbarWidth: number, view?: T): T;
 	headerViewForGrid<T extends View<any>>(grid: Dgrid, columns: Column[], cells: { [key: string]: any }, view?: T): T;
 	headerCellForGrid<T extends View<any>>(grid: Dgrid, column: Column, content: any, view?: T): T;
 	headerCellViewForGrid?<T extends View<any>>(grid: Dgrid, column: Column, view?: T): T;
