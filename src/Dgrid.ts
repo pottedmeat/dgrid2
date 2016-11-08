@@ -14,7 +14,7 @@ export interface Column {
 
 export interface DgridProperties {
 	columns: Column[];
-	collection: any[];
+	collection?: any[];
 }
 
 const oddClass = 'dgrid-row-odd',
@@ -55,12 +55,47 @@ addHas('dom-scrollbar-height', function () {
 });
 
 class Dgrid extends Evented implements Renderer {
+	_store: any;
+	_storeSubscription: any;
 	state: {[key: string]: any};
 	props: DgridProperties;
 	domNode: HTMLElement;
 	renderer: Renderer;
 	customize: Customize;
 	scaffolding: Scaffolding<any>;
+
+	get store(): any {
+		return this._store;
+	}
+
+	set store(newStore: any) {
+		if (this._store === newStore) {
+			return;
+		}
+
+		if (this._storeSubscription) {
+			this._storeSubscription.unsubscribe();
+			this._storeSubscription = null;
+		}
+
+		this._store = newStore;
+
+		this._updateCollectionFromStore();
+
+		// TODO: better type-safe approach for detecting observable?
+		if (this._store.observe) {
+			this._storeSubscription = this._store.observe().subscribe(() => {
+				this._updateCollectionFromStore();
+			});
+		}
+	}
+
+	_updateCollectionFromStore() {
+		this._store.fetch().then((data: any[]) => {
+			this.props.collection = data;
+			this.reloadData();
+		});
+	}
 
 	reloadData(at?: { row?: number, column?: string }) {
 		let column: Column;
