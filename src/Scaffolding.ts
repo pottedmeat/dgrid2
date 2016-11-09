@@ -4,7 +4,7 @@ interface ObjectLiteral {
 	[key: string]: any;
 }
 
-interface Scaffold<T, U extends View<any>> {
+interface Scaffold<T, U extends View<any>, V> {
 	id: string;
 	context: any;
 	callback: (<T, U extends View<any>>(context: T, view: U) => U) |
@@ -14,7 +14,8 @@ interface Scaffold<T, U extends View<any>> {
 		(<T, U extends View<any>>(context: T, child: any, children: any[], view: U) => U);
 	parent?: string;
 	groupChildren?: boolean;
-	over?: { (): any[] };
+	over?: { (): V[] };
+	identify?: { (item: V): string };
 }
 
 function buildCacheKey(path: string, prefill: any[]) {
@@ -216,45 +217,48 @@ class Scaffolding<T> {
 						visited = visitedPaths[arrPath] = [];
 					}
 
-					for (let i = 0, il = arr.length; i < il; i++) {
-						// keep track of what data we've looked at
-						const item = arr[i];
-						const index = visited.indexOf(item['id']);
-						if (index !== -1) {
-							visited.splice(index, 1);
-						}
-						visiting.push(item['id']);
-						// first append the item in the array and its position to the arguments
-						const tempPrefill = prefill.concat(item);
-						const tempPrefilledByPaths = prefilledByPaths.concat([arrPath]);
-						let iargs = args.concat([arr[i]]);
-						// load the cache
-						const cacheKey = buildCacheKey(path, prefill.concat([arr[i]]));
-						// calculate all children (with matching prefilled arguments) and append those
-						const children = this.buildFromPath(rootContext, path, tempPrefill, tempPrefilledByPaths);
-						childrenCache[cacheKey] = children;
-						const renders = children.map(function(view) {
-							return view.render;
-						});
-						if (info && info.groupChildren) {
-							iargs.push(renders);
-						}
-						else {
-							iargs = iargs.concat(renders);
-						}
+					if (arr) {
+						for (let i = 0, il = arr.length; i < il; i++) {
+							// keep track of what data we've looked at
+							const item = arr[i];
+							const identifier = (info.identify ? info.identify(item) : item['id']);
+							const index = visited.indexOf(identifier);
+							if (index !== -1) {
+								visited.splice(index, 1);
+							}
+							visiting.push(identifier);
+							// first append the item in the array and its position to the arguments
+							const tempPrefill = prefill.concat(item);
+							const tempPrefilledByPaths = prefilledByPaths.concat([arrPath]);
+							let iargs = args.concat([arr[i]]);
+							// load the cache
+							const cacheKey = buildCacheKey(path, prefill.concat([arr[i]]));
+							// calculate all children (with matching prefilled arguments) and append those
+							const children = this.buildFromPath(rootContext, path, tempPrefill, tempPrefilledByPaths);
+							childrenCache[cacheKey] = children;
+							const renders = children.map(function(view) {
+								return view.render;
+							});
+							if (info && info.groupChildren) {
+								iargs.push(renders);
+							}
+							else {
+								iargs = iargs.concat(renders);
+							}
 
-						const oldView = viewCache[cacheKey];
-						if (oldView) {
-							iargs.push(oldView);
-						}
+							const oldView = viewCache[cacheKey];
+							if (oldView) {
+								iargs.push(oldView);
+							}
 
-						// call the method with these arguments
-						const newView: View<any> = info.callback.apply(info.context, iargs);
-						if (oldView && oldView !== newView) {
-							throw 'Expected view to be reused when calling ' + path;
+							// call the method with these arguments
+							const newView: View<any> = info.callback.apply(info.context, iargs);
+							if (oldView && oldView !== newView) {
+								throw 'Expected view to be reused when calling ' + path;
+							}
+							this._cacheView(newView, cacheKey, tempPrefill, tempPrefilledByPaths);
+							childViews.push(newView);
 						}
-						this._cacheView(newView, cacheKey, tempPrefill, tempPrefilledByPaths);
-						childViews.push(newView);
 					}
 
 					for (let i = 0, il = visited.length; i < il; i++) {
