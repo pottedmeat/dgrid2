@@ -187,6 +187,9 @@ class Dgrid extends Evented implements Renderer {
 			parent: 'bodyForGrid',
 			over: () => {
 				return this.props.collection;
+			},
+			identify: (item: any) => {
+				return this._store.identify(item)[0];
 			}
 		});
 		scaffolding.add({

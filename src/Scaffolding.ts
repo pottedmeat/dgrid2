@@ -4,7 +4,7 @@ interface ObjectLiteral {
 	[key: string]: any;
 }
 
-interface Scaffold<T, U extends View<any>> {
+interface Scaffold<T, U extends View<any>, V> {
 	id: string;
 	context: any;
 	callback: (<T, U extends View<any>>(context: T, view: U) => U) |
@@ -14,7 +14,8 @@ interface Scaffold<T, U extends View<any>> {
 		(<T, U extends View<any>>(context: T, child: any, children: any[], view: U) => U);
 	parent?: string;
 	groupChildren?: boolean;
-	over?: { (): any[] };
+	over?: { (): V[] };
+	identify?: { (item: V): string };
 }
 
 function buildCacheKey(path: string, prefill: any[]) {
@@ -220,11 +221,12 @@ class Scaffolding<T> {
 						for (let i = 0, il = arr.length; i < il; i++) {
 							// keep track of what data we've looked at
 							const item = arr[i];
-							const index = visited.indexOf(item['id']);
+							const identifier = (info.identify ? info.identify(item) : item['id']);
+							const index = visited.indexOf(identifier);
 							if (index !== -1) {
 								visited.splice(index, 1);
 							}
-							visiting.push(item['id']);
+							visiting.push(identifier);
 							// first append the item in the array and its position to the arguments
 							const tempPrefill = prefill.concat(item);
 							const tempPrefilledByPaths = prefilledByPaths.concat([arrPath]);

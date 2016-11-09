@@ -35,7 +35,7 @@ const data: Person[] = [
 const store = createStore.mixin(createObservableStoreMixin())(({
 	data: data
 }));
-const type = 'dom';
+const type = 'maquette';
 
 const gridNode = document.getElementById('grid');
 
