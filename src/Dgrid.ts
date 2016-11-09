@@ -17,13 +17,7 @@ export interface DgridProperties {
 	collection?: any[];
 }
 
-const oddClass = 'dgrid-row-odd',
-	evenClass = 'dgrid-row-even';
-let scrollbarWidth = 0, scrollbarHeight = 0;
-
-function byId(id: string) {
-	return document.getElementById(id);
-}
+let scrollbarWidth = 0;
 
 function cleanupTestElement(element: HTMLElement) {
 	element.className = '';
@@ -36,9 +30,9 @@ function getScrollbarSize(element: HTMLElement, dimension: string) {
 	// Used by has tests for scrollbar width/height
 	element.className = 'dgrid-scrollbar-measure';
 	document.body.appendChild(element);
-	const offset: number = (<any>element)['offset' + dimension];
-	const client: number = (<any>element)['client' + dimension];
-	var size: number = offset - client;
+	const offset: number = (<any> element)['offset' + dimension];
+	const client: number = (<any> element)['client' + dimension];
+	let size: number = (offset - client);
 	cleanupTestElement(element);
 	if (false && has('ie')) {
 		// Avoid issues with certain widgets inside in IE7, and
@@ -227,7 +221,7 @@ class Dgrid extends Evented implements Renderer {
 	headerForGrid(grid: Dgrid, content: any, view?: any) {
 		if (!scrollbarWidth) {
 			// Measure the browser's scrollbar width using a DIV we'll delete right away
-			scrollbarWidth = <number>has('dom-scrollbar-width');
+			scrollbarWidth = <number> has('dom-scrollbar-width');
 		}
 		return this.renderer.headerForGrid(grid, content, scrollbarWidth, view);
 	}

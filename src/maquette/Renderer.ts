@@ -105,7 +105,8 @@ class Renderer implements _Renderer {
 	rowForGrid(grid: Dgrid, data: any, content: VNode, view?: { render: VNode }) {
 		view = (view || { render: null });
 		view.render = h('div.dgrid-row', {
-			role: 'row'
+			role: 'row',
+			key: grid.store.identify(data)[0]
 		}, content);
 		return view;
 	}
@@ -118,8 +119,7 @@ class Renderer implements _Renderer {
 
 		view = (view || { render: null });
 		view.render = h('table.dgrid-row-table', {
-			role: 'presentation',
-			key: data.id
+			role: 'presentation'
 		}, [ h('tr', children) ]);
 		return view;
 	}

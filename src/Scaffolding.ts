@@ -23,6 +23,7 @@ function buildCacheKey(path: string, prefill: any[]) {
 	if (prefill && prefill.length) {
 		// TODO: More complicated cache key
 		cacheKey = prefill.map(function(value: any) {
+			debugger;
 			return value['id'];
 		}).join(',') + ',';
 	}
@@ -30,7 +31,7 @@ function buildCacheKey(path: string, prefill: any[]) {
 }
 
 class Scaffolding<T> {
-	infoByPath: {[key: string]: Scaffold<T, any>};
+	infoByPath: {[key: string]: Scaffold<T, any, any>};
 	ids: string[];
 	viewCache: { [key: string]: View<any> };
 	visitedPaths: { [key: string]: any[] }; // the ids visited in each .over
@@ -73,7 +74,7 @@ class Scaffolding<T> {
 		return null;
 	}
 
-	add(info: Scaffold<T, any>) {
+	add(info: Scaffold<T, any, any>) {
 		const id = info.id;
 		this.infoByPath[id] = info;
 		this.ids.push(id);
@@ -110,6 +111,7 @@ class Scaffolding<T> {
 				viewCache = this.viewCache;
 		if (prefill && paths) {
 			for (let j = 0, jl = prefill.length; j < jl; j++) {
+				debugger;
 				const prefillId = prefill[j]['id'];
 				const prefillPath = paths[j];
 				let viewsById = viewsByPath[prefillPath];
