@@ -23,7 +23,6 @@ function buildCacheKey(path: string, prefill: any[]) {
 	if (prefill && prefill.length) {
 		// TODO: More complicated cache key
 		cacheKey = prefill.map(function(value: any) {
-			debugger;
 			return value['id'];
 		}).join(',') + ',';
 	}
@@ -111,7 +110,6 @@ class Scaffolding<T> {
 				viewCache = this.viewCache;
 		if (prefill && paths) {
 			for (let j = 0, jl = prefill.length; j < jl; j++) {
-				debugger;
 				const prefillId = prefill[j]['id'];
 				const prefillPath = paths[j];
 				let viewsById = viewsByPath[prefillPath];
