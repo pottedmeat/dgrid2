@@ -27,13 +27,18 @@
 				display: block;
 			}
 
+			#main {
+				margin-left: auto;
+				margin-right: auto;
+				width: 910px;
+			}
+
 			.thead-focused, .tbody-focused {
 				border-width: 3px;
 			}
 
 			.dgrid {
 				border-color: rgb(92, 92, 92);
-				margin-left: 200px;
 				width: 900px;
 			}
 
@@ -51,48 +56,101 @@
 				background-color: rgb(52, 45, 35);
 			}
 
+			.dgrid-column-delete {
+				cursor: pointer;
+				font-size: 16pt;
+				text-align: center;
+				width: 50px;
+			}
+
+			.dgrid-column-delete:hover {
+				color: azure;
+			}
+
+			fieldset {
+				margin-top: 15px;
+			}
+
+			.labelText {
+				display: inline-block;
+				min-width: 5em;
+				text-align: right;
+			}
+
 			label > input {
 				padding-left: 8px;
 			}
 		</style>
 	</head>
-	<body>
-		<div id="grid"></div>
 
-		<form id="addItems">
-			<label>id:
-				<input type="text" name="id">
-			</label>
-			<br>
-			<label>age:
-				<input type="text" name="age">
-			</label>
-			<br>
-			<label>gender:
-				<input type="text" name="gender">
-			</label>
-			<br>
-			<label>location:
-				<input type="text" name="location">
-			</label>
-			<br>
-			<button type="submit">Add Item</button>
-		</form>
+	<body>
+		<div id="main">
+			<div id="grid"></div>
+
+			<form id="addItem">
+				<fieldset>
+					<legend>Add an item</legend>
+
+					<label><span class="labelText">id:</span>
+						<input type="text" name="id">
+					</label>
+					<br>
+					<label><span class="labelText">age:</span>
+						<input type="text" name="age">
+					</label>
+					<br>
+					<label><span class="labelText">gender:</span>
+						<input type="text" name="gender">
+					</label>
+					<br>
+					<label><span class="labelText">location:</span>
+						<input type="text" name="location">
+					</label>
+					<br>
+					<button type="submit">Add/Update Item</button>
+				</fieldset>
+			</form>
+
+			<form id="deleteItem">
+				<fieldset>
+					<legend>Delete an item</legend>
+
+					<label><span class="labelText">id:</span>
+						<input type="text" name="id">
+					</label>
+					<br>
+					<button type="submit">Delete Item</button>
+				</fieldset>
+			</form>
+		</div>
 
 		<script src="./../../node_modules/dojo-loader/loader.min.js"></script>
 		<script src="./store.js"></script>
 
 		<script>
-			document.getElementById('addItems').addEventListener('submit', function(event) {
+			document.getElementById('addItem').addEventListener('submit', function (event) {
 				event.preventDefault();
 
 				var form = event.target;
 
-				store.add({
-					id: parseInt(form.elements.id.value, 10),
+				store.put({
+					id: form.elements.id.value,
 					age: parseInt(form.elements.age.value, 10),
 					gender: form.elements.gender.value,
 					location: form.elements.location.value
+				});
+			});
+
+			document.getElementById('deleteItem').addEventListener('submit', function (event) {
+				event.preventDefault();
+
+				var form = event.target;
+				var itemId = form.elements.id.value;
+
+				store.delete(itemId).then(function (deletedItems) {
+					if (!deletedItems.length) {
+						console.warn('Attempted to delete non-existent item: ' + itemId);
+					}
 				});
 			});
 		</script>

@@ -5,6 +5,9 @@ import View from './interfaces/View';
 import on from 'dojo-core/on';
 import Evented from 'dojo-core/Evented';
 import has, { add as addHas } from 'dojo-has/has';
+import { CrudOptions, Store } from 'dojo-stores/store/createStore';
+import { UpdateResults } from 'dojo-stores/storage/createInMemoryStorage';
+import { Subscription } from 'rxjs/Rx';
 
 export interface Column {
 	id: string;
@@ -49,8 +52,9 @@ addHas('dom-scrollbar-height', function () {
 });
 
 class Dgrid extends Evented implements Renderer {
-	_store: any;
-	_storeSubscription: any;
+	// TODO: this seems like a legitimate use of any, but should/can this be generic?
+	_store: Store<any, CrudOptions, UpdateResults<any>>;
+	_storeSubscription: Subscription;
 	state: {[key: string]: any};
 	props: DgridProperties;
 	domNode: HTMLElement;
