@@ -18,16 +18,8 @@ interface Scaffold<T, U extends View<any>, V> {
 	identify?: { (item: V): string };
 }
 
-function buildCacheKey(path: string, prefill: any[]) {
-	let cacheKey = '';
-	if (prefill && prefill.length) {
-		// TODO: More complicated cache key
-		cacheKey = prefill.map(function(value: any) {
-			debugger;
-			return value['id'];
-		}).join(',') + ',';
-	}
-	return (cacheKey + path);
+function identify(info: Scaffold<any, any, any>, item: any) {
+	return (info.identify ? info.identify(item) : item['id']);
 }
 
 class Scaffolding<T> {
@@ -84,9 +76,45 @@ class Scaffolding<T> {
 		this.reloadPath(rootContext, path, prefill, false);
 	}
 
-	private _prefillPaths(fromPath: string) {
+	private _buildCacheKey(fromPath: string, prefills: any[] = []) {
+		const paths = this._parentPath(fromPath, prefills);
+		const ids: string[] = [];
+		for (const path of paths) {
+			if (path.length === 2) {
+				ids.push(path[1]);
+			}
+		}
+		if (ids.length) {
+			return ids.join(',') + ',' + fromPath;
+		}
+		return fromPath;
+	}
+
+	private _prefilledByPath(fromPath: string) {
 		const byPath = this.infoByPath;
 		const paths: string[] = [];
+		
+		let path = fromPath;
+		while (true) {
+			const info = byPath[path];
+			if (!info) {
+				break;
+			}
+
+			paths.unshift(info.id);
+
+			path = info.parent;
+			if (!path) {
+				break;
+			}
+		}
+		return paths;
+	}
+
+	private _parentPath(fromPath: string, prefills: any[] = []) {
+		const byPath = this.infoByPath;
+		prefills = prefills.slice(0);
+		const paths: Array<[ string ] | [ string, string ]> = [];
 
 		let path = fromPath;
 		while (true) {
@@ -94,10 +122,17 @@ class Scaffolding<T> {
 			if (!info) {
 				break;
 			}
-			const arrCallback = info.over;
-			if (arrCallback) {
-				paths.unshift('over');
+
+			if (info.over) {
+				if (!prefills.length) {
+					throw "Not enough items passed to fill in 'over' arrays encountered in parents";
+				}
+				paths.unshift([info.id, identify(info, prefills.pop())]); // pull an item off the end as we move up
 			}
+			else {
+				paths.unshift([info.id]);
+			}
+
 			path = info.parent;
 			if (!path) {
 				break;
@@ -111,7 +146,6 @@ class Scaffolding<T> {
 				viewCache = this.viewCache;
 		if (prefill && paths) {
 			for (let j = 0, jl = prefill.length; j < jl; j++) {
-				debugger;
 				const prefillId = prefill[j]['id'];
 				const prefillPath = paths[j];
 				let viewsById = viewsByPath[prefillPath];
@@ -128,7 +162,7 @@ class Scaffolding<T> {
 		viewCache[cacheKey] = view;
 	}
 
-	reloadPath<T>(rootContext: any, id?: string, prefill?: any[], full = true) {
+	reloadPath<T>(rootContext: any, id: string, prefill?: any[], full = true) {
 		const pathsInfo = this.infoByPath,
 			childrenCache = this.childrenCache,
 			info = pathsInfo[id];
@@ -137,7 +171,7 @@ class Scaffolding<T> {
 			args = args.concat(prefill);
 		}
 
-		const cacheKey = buildCacheKey(id, prefill);
+		const cacheKey = this._buildCacheKey(id, prefill);
 		let children: View<any>[];
 		if (full) {
 			children = this.buildFromPath(rootContext, id, prefill);
@@ -162,7 +196,7 @@ class Scaffolding<T> {
 			args.push(oldView);
 		}
 		const newView = info.callback.apply(info.context, args);
-		this._cacheView(newView, cacheKey, prefill, this._prefillPaths(id));
+		this._cacheView(newView, cacheKey, prefill, this._prefilledByPath(id));
 		if (oldView) {
 			if (oldView !== newView) {
 				throw 'Expected view to be reused when calling ' + id;
@@ -212,18 +246,17 @@ class Scaffolding<T> {
 					prefilledByPaths = (prefilledByPaths || []);
 					const arrCallback = info.over;
 					const arr = arrCallback();
-					const arrPath = 'over';
 					const visiting: any[] = [];
-					let visited = visitedPaths[arrPath];
+					let visited = visitedPaths[path];
 					if (!visited) {
-						visited = visitedPaths[arrPath] = [];
+						visited = visitedPaths[path] = [];
 					}
 
 					if (arr) {
 						for (let i = 0, il = arr.length; i < il; i++) {
 							// keep track of what data we've looked at
 							const item = arr[i];
-							const identifier = (info.identify ? info.identify(item) : item['id']);
+							const identifier = identify(info, item);
 							const index = visited.indexOf(identifier);
 							if (index !== -1) {
 								visited.splice(index, 1);
@@ -231,10 +264,10 @@ class Scaffolding<T> {
 							visiting.push(identifier);
 							// first append the item in the array and its position to the arguments
 							const tempPrefill = prefill.concat(item);
-							const tempPrefilledByPaths = prefilledByPaths.concat([arrPath]);
+							const tempPrefilledByPaths = prefilledByPaths.concat([identifier]);
 							let iargs = args.concat([arr[i]]);
 							// load the cache
-							const cacheKey = buildCacheKey(path, prefill.concat([arr[i]]));
+							const cacheKey = this._buildCacheKey(path, prefill.concat([arr[i]]));
 							// calculate all children (with matching prefilled arguments) and append those
 							const children = this.buildFromPath(rootContext, path, tempPrefill, tempPrefilledByPaths);
 							childrenCache[cacheKey] = children;
@@ -265,8 +298,8 @@ class Scaffolding<T> {
 
 					for (let i = 0, il = visited.length; i < il; i++) {
 						// all these views are now stale
-						if (viewsByPath[arrPath] && viewsByPath[arrPath][visited[i]]) {
-							const views = viewsByPath[arrPath][visited[i]];
+						if (viewsByPath[path] && viewsByPath[path][visited[i]]) {
+							const views = viewsByPath[path][visited[i]];
 							for (const view of views) {
 								for (const identifier in registeredViews) {
 									const registered = registeredViews[identifier];
@@ -287,7 +320,7 @@ class Scaffolding<T> {
 					visited.push.apply(visited, visiting);
 				}
 				else {
-					const cacheKey = buildCacheKey(path, prefill);
+					const cacheKey = this._buildCacheKey(path, prefill);
 					const children = this.buildFromPath(rootContext, path, prefill, prefilledByPaths);
 					childrenCache[cacheKey] = children;
 					const renders = children.map(function(view) {
