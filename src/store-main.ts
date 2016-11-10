@@ -7,33 +7,42 @@ import { h, VNode } from 'maquette';
 interface Person {
 	age: number;
 	gender: string;
-	id: number;
+	id: string;
 	location: string;
 }
 
-const data: Person[] = [
-	{
-		id: 1,
-		age: 21,
-		gender: 'M',
-		location: 'Dive Bar'
-	},
-	{
-		id: 2,
-		age: 8,
-		gender: 'M',
-		location: 'Playground'
-	},
-	{
-		id: 3,
-		age: 70,
-		gender: 'F',
-		location: 'Early Bird Supper'
-	}
+const locations = [
+	'Dive Bar',
+	'Playground',
+	'Early Bird Supper',
+	'On the Lam',
+	'Lost',
+	'070-mark-63'
 ];
+
+function createData(count: number): Person[] {
+	const data: Person[] = [];
+
+	for (let i = 0; i < count; i++) {
+		data.push({
+			id: String(i + 1),
+			age: Math.floor(Math.random() * 100) + 1,
+			gender: String.fromCharCode(Math.floor(Math.random() * 25) + 65),
+			location: locations[Math.floor(Math.random() * locations.length)]
+		});
+	}
+
+	return data;
+}
+
+console.time('createData');
+const data = createData(5000);
+console.timeEnd('createData');
+console.time('createStore');
 const store = createStore.mixin(createObservableStoreMixin())(({
 	data: data
 }));
+console.timeEnd('createStore');
 
 const gridNode = document.getElementById('grid');
 
@@ -53,10 +62,16 @@ const props = {
 			id: 'location',
 			field: 'location',
 			label: 'Location'
+		},
+		{
+			id: 'delete',
+			field: '',
+			label: ''
 		}
 	]
 	// collection: data
 };
+
 let grid = createMaquetteGrid(gridNode, props);
 grid.customize = {
 	headerCellViewForGrid: function(grid: Dgrid, column: Column, view?: { render: VNode }) {
@@ -77,13 +92,20 @@ grid.customize = {
 		else if (column.id === 'location') {
 			children.push('located at ', content);
 		}
+		else if (column.id === 'delete') {
+			children.push('🗑');
+		}
 		view.render = h('span', children);
 		return view;
 	}
 };
 
+console.time('set grid.store');
 grid.store = store;
+console.timeEnd('set grid.store');
+console.time('grid.startup');
 grid.startup();
+console.timeEnd('grid.startup');
 
 (<any> window).store = store;
 (<any> window).grid = grid;
