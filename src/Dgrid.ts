@@ -324,16 +324,10 @@ class Dgrid extends Evented implements Renderer {
 			const target = event.target;
 			const field = (target.field || target.columnId);
 			const sort = (this.sort && this.sort[0]);
-			let newSort: Sort[];
-			if (!sort || sort.property !== field || !sort.descending) {
-				newSort = [{
-					property: field,
-					descending: (sort && sort.property === field && !sort.descending)
-				}];
-			}
-			else {
-				newSort = [];
-			}
+			let newSort: Sort[] = [{
+				property: field,
+				descending: (sort && sort.property === field && !sort.descending)
+			}];
 			this.sort = newSort;
 			if (newSort.length) {
 				const sortable = <QueryMixin<any, CrudOptions, UpdateResults<any>, Store<any, CrudOptions, UpdateResults<any>>>>this.store;

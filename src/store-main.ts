@@ -1,6 +1,6 @@
 import createObservableStoreMixin from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import createQueryMixin from 'dojo-stores/store/mixins/createQueryMixin';
-import createStore from 'dojo-stores/store/createStore';
+import createSubcollectionStore from 'dojo-stores/store/createSubcollectionStore';
 import { default as createMaquetteGrid } from './maquette/createGrid';
 import Dgrid, { Column } from './Dgrid';
 import { h, VNode } from 'maquette';
@@ -40,7 +40,7 @@ console.time('createData');
 const data = createData(5000);
 console.timeEnd('createData');
 console.time('createStore');
-const store = createStore.mixin(createQueryMixin()).mixin(createObservableStoreMixin())(({
+const store = createSubcollectionStore.mixin(createQueryMixin()).mixin(createObservableStoreMixin())(({
 	data: data
 }));
 console.timeEnd('createStore');
