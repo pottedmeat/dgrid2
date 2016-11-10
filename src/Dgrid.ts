@@ -6,6 +6,8 @@ import on from 'dojo-core/on';
 import Evented from 'dojo-core/Evented';
 import has, { add as addHas } from 'dojo-has/has';
 import { CrudOptions, Store } from 'dojo-stores/store/createStore';
+import { createSort } from 'dojo-stores/query/Sort';
+import { QueryMixin} from 'dojo-stores/store/mixins/createQueryMixin';
 import { UpdateResults } from 'dojo-stores/storage/createInMemoryStorage';
 import { Subscription } from 'rxjs/Rx';
 
@@ -13,6 +15,25 @@ export interface Column {
 	id: string;
 	label: string;
 	field?: string;
+	sortable?: boolean;
+}
+
+export interface Sort {
+	property: string;
+	descending: boolean;
+}
+
+export interface SortTarget extends HTMLElement {
+	sortable: boolean;
+	field: string;
+	columnId: string;
+}
+
+export interface SortEvent {
+	type: string;
+	grid: Dgrid;
+	event: (MouseEvent | KeyboardEvent);
+	target: SortTarget;
 }
 
 export interface DgridProperties {
@@ -61,6 +82,7 @@ class Dgrid extends Evented implements Renderer {
 	renderer: Renderer;
 	customize: Customize;
 	scaffolding: Scaffolding<any>;
+	sort: Sort[];
 
 	get store(): any {
 		return this._store;
@@ -298,15 +320,25 @@ class Dgrid extends Evented implements Renderer {
 		}
 		const state = this.state;
 
-		on(this, 'thead:click', (event: MouseEvent) => {
-			state['theadFocused'] = !state['theadFocused'];
-			console.log('thead focused:', state['theadFocused']);
-			scaffolding.reloadAt(this, 'headerViewForGrid');
-		});
-		on(this, 'tbody:click', (event: MouseEvent) => {
-			state['tbodyFocused'] = !state['tbodyFocused'];
-			console.log('tbody focused:', state['tbodyFocused']);
-			scaffolding.reloadAt(this, 'bodyForGrid');
+		on(this, 'dgrid-sort', (event: SortEvent) => {
+			const target = event.target;
+			const field = (target.field || target.columnId);
+			const sort = (this.sort && this.sort[0]);
+			let newSort: Sort[];
+			if (!sort || sort.property !== field || !sort.descending) {
+				newSort = [{
+					property: field,
+					descending: (sort && sort.property === field && !sort.descending)
+				}];
+			}
+			else {
+				newSort = [];
+			}
+			this.sort = newSort;
+			if (newSort.length) {
+				const sortable = <QueryMixin<any, CrudOptions, UpdateResults<any>, Store<any, CrudOptions, UpdateResults<any>>>>this.store;
+				this.store = sortable.sort(newSort[0].property, newSort[0].descending);
+			}
 		});
 	}
 }

@@ -1,7 +1,7 @@
 import _Renderer from '../interfaces/Renderer';
 import { createProjector, Projector, h, VNode } from 'maquette';
-import Dgrid, { Column } from '../Dgrid';
-// import { emit } from 'dojo-core/on';
+import Dgrid, { Column, SortTarget } from '../Dgrid';
+import { emit } from 'dojo-core/on';
 
 let viewForGridChildren: {
 	header: VNode,
@@ -16,6 +16,31 @@ let viewForGridChildren: {
 		}, [this.header, this.body]);
 	}
 };
+
+function sortListener(this: Dgrid, event: MouseEvent) {
+	let target = <SortTarget>event.target;
+	while (target.parentNode) {
+		if (target.tagName === 'TH') {
+			if (target.sortable) {
+				emit(this, {
+					type: 'dgrid-sort',
+					grid: this,
+					event: event,
+					target: target
+				});
+			}
+			return;
+		}
+		target = <SortTarget>target.parentNode;
+	}
+}
+
+function columnToNode(this: Column, element: SortTarget) {
+	const column = this;
+	element.sortable = column.sortable;
+	element.field = column.field;
+	element.columnId = column.id;
+}
 
 class Renderer implements _Renderer {
 	projector: Projector;
@@ -68,7 +93,9 @@ class Renderer implements _Renderer {
 
 		view = (view || { render: null });
 		view.render = h('table.dgrid-row-table', {
-			role: 'presentation'
+			role: 'presentation',
+			onclick: sortListener,
+			bind: grid
 		}, [ h('tr', children) ]);
 		return view;
 	}
@@ -83,7 +110,10 @@ class Renderer implements _Renderer {
 			classes.push('dgrid-field-' + column.field);
 		}
 		view.render = h('th.' + classes.join('.'), {
-			role: 'columnheader'
+			role: 'columnheader',
+			bind: column,
+			afterCreate: columnToNode,
+			afterUpdate: columnToNode
 		}, [ content ]);
 		return view;
 	}

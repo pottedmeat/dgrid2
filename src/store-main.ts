@@ -1,4 +1,5 @@
 import createObservableStoreMixin from 'dojo-stores/store/mixins/createObservableStoreMixin';
+import createQueryMixin from 'dojo-stores/store/mixins/createQueryMixin';
 import createStore from 'dojo-stores/store/createStore';
 import { default as createMaquetteGrid } from './maquette/createGrid';
 import Dgrid, { Column } from './Dgrid';
@@ -39,7 +40,7 @@ console.time('createData');
 const data = createData(5000);
 console.timeEnd('createData');
 console.time('createStore');
-const store = createStore.mixin(createObservableStoreMixin())(({
+const store = createStore.mixin(createQueryMixin()).mixin(createObservableStoreMixin())(({
 	data: data
 }));
 console.timeEnd('createStore');
@@ -51,12 +52,14 @@ const props = {
 		{
 			id: 'age',
 			field: 'age',
-			label: 'Age'
+			label: 'Age',
+			sortable: true
 		},
 		{
 			id: 'gender',
 			field: 'gender',
-			label: 'Gender'
+			label: 'Gender',
+			sortable: true
 		},
 		{
 			id: 'location',
