@@ -40,6 +40,8 @@ export interface SortEvent {
 export interface DgridProperties {
 	columns: Column[];
 	collection?: any[];
+	idProperty?: string;
+	store?: Store<any, CrudOptions, UpdateResults<any>>;
 }
 
 type ObservableStore = Store<any, CrudOptions, UpdateResults<any>> & ObservableStoreMixin<any>;
@@ -79,6 +81,8 @@ class Dgrid extends Evented implements Renderer {
 	// TODO: this seems like a legitimate use of any, but should/can this be generic?
 	_store: Store<any, CrudOptions, UpdateResults<any>>;
 	_storeSubscription: Subscription;
+
+	idProperty: string = 'id';
 	state: {[key: string]: any};
 	props: DgridProperties;
 	domNode: HTMLElement;
@@ -159,7 +163,19 @@ class Dgrid extends Evented implements Renderer {
 		this.props = props;
 		this.domNode = domNode;
 		this.state = {};
-		const scaffolding = this.scaffolding = new Scaffolding();
+
+		// TODO: we need a unified approach on constructor params
+		if (props.idProperty) {
+			this.idProperty = props.idProperty;
+		}
+
+		if (props.store) {
+			this.store = props.store;
+		}
+
+		const scaffolding = this.scaffolding = new Scaffolding({
+			idProperty: this.idProperty
+		});
 
 		scaffolding.shouldReloadParent = this.shouldReloadParent.bind(this);
 		scaffolding.add({

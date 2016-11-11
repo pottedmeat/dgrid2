@@ -14,16 +14,17 @@ interface Scaffold<T, U extends View<any>, V> {
 		(<T, U extends View<any>>(context: T, child: any, children: any[], view: U) => U);
 	parent?: string;
 	groupChildren?: boolean;
-	over?: { (): V[] };
-	identify?: { (item: V): string };
+	over?: () => V[];
+	identify?: (item: V) => string;
 }
 
-function identify(info: Scaffold<any, any, any>, item: any) {
-	return (info.identify ? info.identify(item) : item['id']);
+interface ScaffoldingArgs {
+	idProperty: string;
 }
 
 class Scaffolding<T> {
 	infoByPath: {[key: string]: Scaffold<T, any, any>};
+	idProperty: string;
 	ids: string[];
 	parentPath: { [key: string]: Array<[ string ] | [ string, string ]> };
 	viewCache: { [key: string]: View<any> };
@@ -34,7 +35,8 @@ class Scaffolding<T> {
 	childrenCache: {[key: string]: View<any>[]};
 	shouldReloadParent: { (oldRender: any, newRender: any): boolean };
 
-	constructor() {
+	constructor(kwArgs: ScaffoldingArgs) {
+		this.idProperty = kwArgs.idProperty;
 		this.infoByPath = {};
 		this.ids = [];
 		this.parentPath = {};
@@ -72,6 +74,10 @@ class Scaffolding<T> {
 		const id = info.id;
 		this.infoByPath[id] = info;
 		this.ids.push(id);
+	}
+
+	identify(info: Scaffold<any, any, any>, item: any): string {
+		return (info.identify ? info.identify(item) : item[this.idProperty]);
 	}
 
 	private _buildCacheKey(fromPath: string, prefills: any[] = []) {
@@ -115,7 +121,7 @@ class Scaffolding<T> {
 		let i = 0;
 		for (const path of paths) {
 			if (path.length === 2) {
-				path[1] = identify(byPath[path[0]], prefills[i++]);
+				path[1] = this.identify(byPath[path[0]], prefills[i++]);
 			}
 		}
 		return paths;
@@ -273,7 +279,7 @@ class Scaffolding<T> {
 						for (let i = 0, il = arr.length; i < il; i++) {
 							// keep track of what data we've looked at
 							const item = arr[i];
-							const identifier = identify(info, item);
+							const identifier = this.identify(info, item);
 							const index = visited.indexOf(identifier);
 							if (index !== -1) {
 								visited.splice(index, 1);
@@ -286,7 +292,7 @@ class Scaffolding<T> {
 							// load the cache
 							const cacheKey = this._buildCacheKey(path, prefill.concat([arr[i]]));
 
-							let children = childrenCache[cacheKey]; 
+							let children = childrenCache[cacheKey];
 							if (full || !children || !children.length) {
 								// calculate all children (with matching prefilled arguments) and append those
 								children = this.buildFromPath(rootContext, path, tempPrefill, tempPrefilledByPaths);
