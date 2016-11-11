@@ -113,7 +113,7 @@ class Dgrid extends Evented implements Renderer {
 	_updateCollectionFromStore() {
 		this._store.fetch().then((data: any[]) => {
 			this.props.collection = data;
-			this.reloadData();
+			this.scaffolding.reloadAt(this, 'bodyForGrid');
 		});
 	}
 
