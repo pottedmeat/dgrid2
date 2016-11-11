@@ -6,6 +6,7 @@ import on from 'dojo-core/on';
 import Evented from 'dojo-core/Evented';
 import has, { add as addHas } from 'dojo-has/has';
 import { CrudOptions, Store } from 'dojo-stores/store/createStore';
+import { ObservableStoreMixin } from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import { createSort } from 'dojo-stores/query/Sort';
 import { QueryMixin} from 'dojo-stores/store/mixins/createQueryMixin';
 import { UpdateResults } from 'dojo-stores/storage/createInMemoryStorage';
@@ -40,6 +41,8 @@ export interface DgridProperties {
 	columns: Column[];
 	collection?: any[];
 }
+
+type ObservableStore = Store<any, CrudOptions, UpdateResults<any>> & ObservableStoreMixin<any>;
 
 let scrollbarWidth = 0;
 
@@ -102,9 +105,8 @@ class Dgrid extends Evented implements Renderer {
 
 		this._updateCollectionFromStore();
 
-		// TODO: better type-safe approach for detecting observable?
-		if (this._store.observe) {
-			this._storeSubscription = this._store.observe().subscribe(() => {
+		if ((<ObservableStore> this._store).observe) {
+			this._storeSubscription = (<ObservableStore> this._store).observe().subscribe(() => {
 				this._updateCollectionFromStore();
 			});
 		}
@@ -330,7 +332,7 @@ class Dgrid extends Evented implements Renderer {
 			}];
 			this.sort = newSort;
 			if (newSort.length) {
-				const sortable = <QueryMixin<any, CrudOptions, UpdateResults<any>, Store<any, CrudOptions, UpdateResults<any>>>>this.store;
+				const sortable = <QueryMixin<any, CrudOptions, UpdateResults<any>, Store<any, CrudOptions, UpdateResults<any>>>> this.store;
 				this.store = sortable.sort(newSort[0].property, newSort[0].descending);
 			}
 		});

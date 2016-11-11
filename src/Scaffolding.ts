@@ -91,7 +91,7 @@ class Scaffolding<T> {
 	private _prefilledByPath(fromPath: string) {
 		const byPath = this.infoByPath;
 		const paths: string[] = [];
-		
+
 		let path = fromPath;
 		while (true) {
 			const info = byPath[path];
