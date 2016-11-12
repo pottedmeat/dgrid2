@@ -19,6 +19,11 @@ export interface Column {
 	sortable?: boolean;
 }
 
+// TODO: this is not a great solution
+export function isColumn(object: any): object is Column {
+	return 'id' in object && 'label' in object;
+}
+
 export interface Sort {
 	property: string;
 	descending: boolean;

@@ -1,3 +1,5 @@
+
+import { Column, isColumn } from './Dgrid';
 import View from './interfaces/View';
 
 interface ObjectLiteral {
@@ -77,7 +79,19 @@ class Scaffolding<T> {
 	}
 
 	identify(info: Scaffold<any, any, any>, item: any): string {
-		return (info.identify ? info.identify(item) : item[this.idProperty]);
+		let id: string;
+
+		if (isColumn(item)) {
+			id = item.id;
+		}
+		else if (info.identify) {
+			id = info.identify(item);
+		}
+		else {
+			id = item[this.idProperty];
+		}
+
+		return id;
 	}
 
 	private _buildCacheKey(fromPath: string, prefills: any[] = []) {

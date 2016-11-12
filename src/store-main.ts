@@ -8,7 +8,7 @@ import { h, VNode } from 'maquette';
 interface Person {
 	age: number;
 	gender: string;
-	zid: string;
+	uuid: string;
 	location: string;
 }
 
@@ -26,7 +26,7 @@ function createData(count: number): Person[] {
 
 	for (let i = 0; i < count; i++) {
 		data.push({
-			zid: String(i + 1),
+			uuid: String(i + 1),
 			age: Math.floor(Math.random() * 100) + 1,
 			gender: String.fromCharCode(Math.floor(Math.random() * 25) + 65),
 			location: locations[Math.floor(Math.random() * locations.length)]
@@ -42,7 +42,7 @@ console.timeEnd('createData');
 console.time('createStore');
 const store = createSubcollectionStore.mixin(createQueryMixin()).mixin(createObservableStoreMixin())(({
 	data: data,
-	idProperty: 'zid'
+	idProperty: 'uuid'
 }));
 console.timeEnd('createStore');
 
@@ -73,7 +73,7 @@ const props = {
 			label: ''
 		}
 	],
-	idProperty: 'zid'
+	idProperty: 'uuid'
 	// collection: data
 };
 
