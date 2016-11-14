@@ -111,9 +111,13 @@ class Dgrid extends Evented implements Renderer {
 	}
 
 	_updateCollectionFromStore() {
+		console.time('store.fetch');
 		this._store.fetch().then((data: any[]) => {
+			console.timeEnd('store.fetch');
 			this.props.collection = data;
+			console.time('scaffolding.reloadAt');
 			this.scaffolding.reloadAt(this, 'bodyForGrid');
+			console.timeEnd('scaffolding.reloadAt');
 		});
 	}
 
@@ -330,8 +334,10 @@ class Dgrid extends Evented implements Renderer {
 			}];
 			this.sort = newSort;
 			if (newSort.length) {
+				console.time('store.sort');
 				const sortable = <QueryMixin<any, CrudOptions, UpdateResults<any>, Store<any, CrudOptions, UpdateResults<any>>>>this.store;
 				this.store = sortable.sort(newSort[0].property, newSort[0].descending);
+				console.timeEnd('store.sort');
 			}
 		});
 	}

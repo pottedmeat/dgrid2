@@ -79,6 +79,9 @@ class Scaffolding<T> {
 		const ids: string[] = [];
 		for (const path of paths) {
 			if (path.length === 2) {
+				if (!path[1]) {
+					debugger;
+				}
 				ids.push(path[1]);
 			}
 		}
