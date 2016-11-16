@@ -353,7 +353,16 @@ export const createDgrid = compose(<Dgrid> {
 				return instance.options.collection;
 			},
 			identify: (item: any) => {
-				return instance._store.identify(item)[0];
+				let id: string;
+
+				if (instance._store) {
+					id = instance._store.identify(item)[0];
+				}
+				else {
+					id = item[instance.idProperty];
+				}
+
+				return id;
 			}
 		});
 		scaffolding.add({

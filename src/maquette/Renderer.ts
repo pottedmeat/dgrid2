@@ -136,7 +136,7 @@ class Renderer implements _Renderer {
 		view = (view || { render: null });
 		view.render = h('div.dgrid-row', {
 			role: 'row',
-			key: grid.store.identify(data)[0]
+			key: grid.scaffolding.identify(data)
 		}, content);
 		return view;
 	}

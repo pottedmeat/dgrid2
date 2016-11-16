@@ -78,13 +78,13 @@ class Scaffolding<T> {
 		this.ids.push(id);
 	}
 
-	identify(info: Scaffold<any, any, any>, item: any): string {
+	identify(item: any, info?: Scaffold<any, any, any>): string {
 		let id: string;
 
 		if (isColumn(item)) {
 			id = item.id;
 		}
-		else if (info.identify) {
+		else if (info && info.identify) {
 			id = info.identify(item);
 		}
 		else {
@@ -138,7 +138,7 @@ class Scaffolding<T> {
 		let i = 0;
 		for (const path of paths) {
 			if (path.length === 2) {
-				path[1] = this.identify(byPath[path[0]], prefills[i++]);
+				path[1] = this.identify(prefills[i++], byPath[path[0]]);
 			}
 		}
 		return paths;
@@ -296,7 +296,7 @@ class Scaffolding<T> {
 						for (let i = 0, il = arr.length; i < il; i++) {
 							// keep track of what data we've looked at
 							const item = arr[i];
-							const identifier = this.identify(info, item);
+							const identifier = this.identify(item, info);
 							const index = visited.indexOf(identifier);
 							if (index !== -1) {
 								visited.splice(index, 1);
