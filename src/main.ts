@@ -5,6 +5,7 @@ import { h, VNode } from 'maquette';
 const div = document.createElement('div');
 document.body.appendChild(div);
 const props = {
+	domNode: div,
 	columns: [
 		{
 			id: 'age',
@@ -43,7 +44,7 @@ const props = {
 		}
 	]
 };
-let grid = createMaquetteGrid(div, props);
+let grid = createMaquetteGrid(props);
 grid.customize = {
 	headerCellViewForGrid: function(grid: Dgrid, column: Column, view?: { render: VNode }) {
 		view = (view || { render: null });

@@ -1,8 +1,8 @@
-import Dgrid, { DgridProperties } from '../Dgrid';
+import { createDgrid, DgridProperties } from '../Dgrid';
 import Renderer from './Renderer';
 
-export default function createGrid(domNode: HTMLElement, props: DgridProperties) {
-	const grid = new Dgrid(domNode, props);
+export default function createGrid(options: DgridProperties) {
+	const grid = createDgrid(options);
 	grid.renderer = new Renderer();
 	return grid;
 }

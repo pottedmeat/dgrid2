@@ -48,6 +48,7 @@ console.timeEnd('createStore');
 const gridNode = document.getElementById('grid');
 
 const props = {
+	domNode: gridNode,
 	columns: [
 		{
 			id: 'age',
@@ -75,7 +76,7 @@ const props = {
 	// collection: data
 };
 
-let grid = createMaquetteGrid(gridNode, props);
+let grid = createMaquetteGrid(props);
 grid.customize = {
 	headerCellViewForGrid: function(grid: Dgrid, column: Column, view?: { render: VNode }) {
 		view = (view || { render: null });

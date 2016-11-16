@@ -180,10 +180,10 @@ class Scaffolding<T> {
 	reloadAt<T>(rootContext: T, path?: string, prefill?: any[]) {
 		const cacheKey = this._buildCacheKey(path, prefill);
 		delete this.childrenCache[cacheKey];
-		this.reloadPath(rootContext, path, prefill, false);
+		this.reloadPath(rootContext, path, prefill, 0);
 	}
 
-	reloadPath<T>(rootContext: any, id: string, prefill?: any[], full = true) {
+	reloadPath<T>(rootContext: any, id: string, prefill?: any[], depth = Infinity) {
 		const pathsInfo = this.infoByPath,
 			childrenCache = this.childrenCache,
 			info = pathsInfo[id];
@@ -194,8 +194,8 @@ class Scaffolding<T> {
 
 		const cacheKey = this._buildCacheKey(id, prefill);
 		let children = childrenCache[cacheKey];
-		if (full || !children || !children.length) {
-			children = this.buildFromPath(rootContext, id, prefill, undefined, full);
+		if (depth >= 0 || !children || !children.length) {
+			children = this.buildFromPath(rootContext, id, prefill, undefined, depth - 1);
 			childrenCache[cacheKey] = children;
 		}
 		const renders = children.map(function(view) {
@@ -224,14 +224,14 @@ class Scaffolding<T> {
 					if (prefill && info.over) {
 						prefill.pop();
 					}
-					this.reloadPath(rootContext, info.parent, prefill, false);
+					this.reloadPath(rootContext, info.parent, prefill, -1);
 				}
 			}
 		}
 	}
 
 	// return all children of this parent in an array
-	buildFromPath<T>(rootContext: T, rootPath?: string, prefill?: any[], prefilledByPaths?: any[], full = true): View<T>[] {
+	buildFromPath<T>(rootContext: T, rootPath?: string, prefill?: any[], prefilledByPaths?: any[], depth = Infinity): View<T>[] {
 		let childViews: View<T>[] = [];
 		prefill = (prefill || []);
 		if (!prefilledByPaths || prefilledByPaths.length !== prefill.length) {
@@ -288,35 +288,39 @@ class Scaffolding<T> {
 							let iargs = args.concat([arr[i]]);
 							// load the cache
 							const cacheKey = this._buildCacheKey(path, prefill.concat([arr[i]]));
-
-							let children = childrenCache[cacheKey]; 
-							if (full || !children || !children.length) {
-								// calculate all children (with matching prefilled arguments) and append those
-								children = this.buildFromPath(rootContext, path, tempPrefill, tempPrefilledByPaths);
-								childrenCache[cacheKey] = children;
-							}
-							const renders = children.map(function(view) {
-								return view.render;
-							});
-							if (info && info.groupChildren) {
-								iargs.push(renders);
+							const oldView = viewCache[cacheKey];
+							if (oldView && depth < 0) {
+								childViews.push(oldView);
 							}
 							else {
-								iargs = iargs.concat(renders);
-							}
+								let children = childrenCache[cacheKey]; 
+								if (depth >= 0 || !children || !children.length) {
+									// calculate all children (with matching prefilled arguments) and append those
+									children = this.buildFromPath(rootContext, path, tempPrefill, tempPrefilledByPaths, depth - 1);
+									childrenCache[cacheKey] = children;
+								}
+								const renders = children.map(function(view) {
+									return view.render;
+								});
+								if (info && info.groupChildren) {
+									iargs.push(renders);
+								}
+								else {
+									iargs = iargs.concat(renders);
+								}
 
-							const oldView = viewCache[cacheKey];
-							if (oldView) {
-								iargs.push(oldView);
-							}
+								if (oldView) {
+									iargs.push(oldView);
+								}
 
-							// call the method with these arguments
-							const newView: View<any> = info.callback.apply(info.context, iargs);
-							if (oldView && oldView !== newView) {
-								throw 'Expected view to be reused when calling ' + path;
+								// call the method with these arguments
+								const newView: View<any> = info.callback.apply(info.context, iargs);
+								if (oldView && oldView !== newView) {
+									throw 'Expected view to be reused when calling ' + path;
+								}
+								this._cacheView(newView, cacheKey, tempPrefill, tempPrefilledByPaths);
+								childViews.push(newView);
 							}
-							this._cacheView(newView, cacheKey, tempPrefill, tempPrefilledByPaths);
-							childViews.push(newView);
 						}
 					}
 
@@ -346,8 +350,8 @@ class Scaffolding<T> {
 				else {
 					const cacheKey = this._buildCacheKey(path, prefill);
 					let children = childrenCache[cacheKey];
-					if (full || !children || !children.length) {
-						children = this.buildFromPath(rootContext, path, prefill, prefilledByPaths);
+					if (depth >= 0 || !children || !children.length) {
+						children = this.buildFromPath(rootContext, path, prefill, prefilledByPaths, depth - 1);
 						childrenCache[cacheKey] = children;
 					}
 					const renders = children.map(function(view) {
