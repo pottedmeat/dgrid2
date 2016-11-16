@@ -1,9 +1,17 @@
+import compose from 'dojo-compose/compose';
 import createObservableStoreMixin from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import createQueryMixin from 'dojo-stores/store/mixins/createQueryMixin';
 import createSubcollectionStore from 'dojo-stores/store/createSubcollectionStore';
-import { default as createMaquetteGrid } from './maquette/createGrid';
-import Dgrid, { Column } from './Dgrid';
 import { h, VNode } from 'maquette';
+import Dgrid, { Column } from './Dgrid';
+import { default as createMaquetteGrid } from './maquette/createGrid';
+import createVirtualScrollingMixin from './mixins/createVirtualScrollingMixin';
+
+const createVirtualGrid = compose.create(Dgrid,
+	function initialize(grid: Dgrid) {
+		grid.props = options.props;
+	})
+	.mixin(createVirtualScrollingMixin());
 
 interface Person {
 	age: number;
