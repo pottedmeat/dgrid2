@@ -1,3 +1,5 @@
+
+import { isColumn } from './Dgrid';
 import View from './interfaces/View';
 
 interface ObjectLiteral {
@@ -14,16 +16,17 @@ interface Scaffold<T, U extends View<any>, V> {
 		(<T, U extends View<any>>(context: T, child: any, children: any[], view: U) => U);
 	parent?: string;
 	groupChildren?: boolean;
-	over?: { (): V[] };
-	identify?: { (item: V): string };
+	over?: () => V[];
+	identify?: (item: V) => string;
 }
 
-function identify(info: Scaffold<any, any, any>, item: any) {
-	return (info.identify ? info.identify(item) : item['id']);
+interface ScaffoldingArgs {
+	idProperty: string;
 }
 
 class Scaffolding<T> {
 	infoByPath: {[key: string]: Scaffold<T, any, any>};
+	idProperty: string;
 	ids: string[];
 	parentPath: { [key: string]: Array<[ string ] | [ string, string ]> };
 	viewCache: { [key: string]: View<any> };
@@ -34,7 +37,8 @@ class Scaffolding<T> {
 	childrenCache: {[key: string]: View<any>[]};
 	shouldReloadParent: { (oldRender: any, newRender: any): boolean };
 
-	constructor() {
+	constructor(kwArgs: ScaffoldingArgs) {
+		this.idProperty = kwArgs.idProperty;
 		this.infoByPath = {};
 		this.ids = [];
 		this.parentPath = {};
@@ -74,6 +78,22 @@ class Scaffolding<T> {
 		this.ids.push(id);
 	}
 
+	identify(info: Scaffold<any, any, any>, item: any): string {
+		let id: string;
+
+		if (isColumn(item)) {
+			id = item.id;
+		}
+		else if (info.identify) {
+			id = info.identify(item);
+		}
+		else {
+			id = item[this.idProperty];
+		}
+
+		return id;
+	}
+
 	private _buildCacheKey(fromPath: string, prefills: any[] = []) {
 		const paths = this._parentPath(fromPath, prefills);
 		const ids: string[] = [];
@@ -94,7 +114,7 @@ class Scaffolding<T> {
 	private _prefilledByPath(fromPath: string) {
 		const byPath = this.infoByPath;
 		const paths: string[] = [];
-		
+
 		let path = fromPath;
 		while (true) {
 			const info = byPath[path];
@@ -118,7 +138,7 @@ class Scaffolding<T> {
 		let i = 0;
 		for (const path of paths) {
 			if (path.length === 2) {
-				path[1] = identify(byPath[path[0]], prefills[i++]);
+				path[1] = this.identify(byPath[path[0]], prefills[i++]);
 			}
 		}
 		return paths;
@@ -276,7 +296,7 @@ class Scaffolding<T> {
 						for (let i = 0, il = arr.length; i < il; i++) {
 							// keep track of what data we've looked at
 							const item = arr[i];
-							const identifier = identify(info, item);
+							const identifier = this.identify(info, item);
 							const index = visited.indexOf(identifier);
 							if (index !== -1) {
 								visited.splice(index, 1);

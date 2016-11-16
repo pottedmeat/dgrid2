@@ -170,7 +170,7 @@ class Renderer implements _Renderer {
 	}
 
 	cellViewForGrid(grid: Dgrid, data: any, column: Column, view?: { render: string }) {
-		console.log('cell:', data.id, column.id);
+		console.log('cell:', data[grid.idProperty], column.id);
 		view = (view || { render: null });
 		view.render = data[column.field];
 		return view;

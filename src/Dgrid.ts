@@ -8,6 +8,7 @@ import createEvented from 'dojo-compose/mixins/createEvented';
 import Evented from 'dojo-core/Evented';
 import has, { add as addHas } from 'dojo-has/has';
 import { CrudOptions, Store } from 'dojo-stores/store/createStore';
+import { ObservableStoreMixin } from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import { createSort } from 'dojo-stores/query/Sort';
 import { QueryMixin} from 'dojo-stores/store/mixins/createQueryMixin';
 import { UpdateResults } from 'dojo-stores/storage/createInMemoryStorage';
@@ -18,6 +19,11 @@ export interface Column {
 	label: string;
 	field?: string;
 	sortable?: boolean;
+}
+
+// TODO: this is not a great solution
+export function isColumn(object: any): object is Column {
+	return 'id' in object && 'label' in object;
 }
 
 export interface Sort {
@@ -42,7 +48,11 @@ export interface DgridProperties {
 	domNode: HTMLElement,
 	columns: Column[];
 	collection?: any[];
+	idProperty?: string;
+	store?: Store<any, CrudOptions, UpdateResults<any>>;
 }
+
+type ObservableStore = Store<any, CrudOptions, UpdateResults<any>> & ObservableStoreMixin<any>;
 
 let scrollbarWidth = 0;
 
@@ -79,7 +89,8 @@ interface Dgrid {
 	// TODO: this seems like a legitimate use of any, but should/can this be generic?
 	_store: Store<any, CrudOptions, UpdateResults<any>>;
 	_storeSubscription: Subscription;
-	store: Store<any, CrudOptions, UpdateResults<any>>;
+
+	idProperty: string = 'id';
 	state: {[key: string]: any};
 	options: DgridProperties;
 	domNode: HTMLElement;
@@ -120,9 +131,8 @@ export const createDgrid = compose(<Dgrid> {
 
 		this._updateCollectionFromStore();
 
-		// TODO: better type-safe approach for detecting observable?
-		if (this._store.observe) {
-			this._storeSubscription = this._store.observe().subscribe(() => {
+		if ((<ObservableStore> this._store).observe) {
+			this._storeSubscription = (<ObservableStore> this._store).observe().subscribe(() => {
 				this._updateCollectionFromStore();
 			});
 		}
@@ -267,8 +277,7 @@ export const createDgrid = compose(<Dgrid> {
 			}];
 			this.sort = newSort;
 			if (newSort.length) {
-				console.time('store.sort');
-				const sortable = <QueryMixin<any, CrudOptions, UpdateResults<any>, Store<any, CrudOptions, UpdateResults<any>>>>this.store;
+				const sortable = <QueryMixin<any, CrudOptions, UpdateResults<any>, Store<any, CrudOptions, UpdateResults<any>>>> this.store;
 				this.store = sortable.sort(newSort[0].property, newSort[0].descending);
 				console.timeEnd('store.sort');
 			}
