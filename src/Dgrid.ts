@@ -87,10 +87,10 @@ addHas('dom-scrollbar-height', function () {
 
 interface Dgrid {
 	// TODO: this seems like a legitimate use of any, but should/can this be generic?
+	store: Store<any, CrudOptions, UpdateResults<any>>;	
 	_store: Store<any, CrudOptions, UpdateResults<any>>;
 	_storeSubscription: Subscription;
-
-	idProperty: string = 'id';
+	idProperty: string;
 	state: {[key: string]: any};
 	options: DgridProperties;
 	domNode: HTMLElement;
@@ -103,6 +103,7 @@ interface Dgrid {
 export const createDgrid = compose(<Dgrid> {
 	_store: null,
 	_storeSubscription: null,
+	idProperty: 'id',
 	state: null,
 	options: null,
 	domNode: null,
@@ -288,7 +289,19 @@ export const createDgrid = compose(<Dgrid> {
 		const options = instance.options;
 		instance.domNode = options.domNode;
 		instance.state = {};
-		const scaffolding = instance.scaffolding = new Scaffolding();
+		
+		// TODO: we need a unified approach on constructor params
+		if (options.idProperty) {
+			instance.idProperty = options.idProperty;
+		}
+
+		if (options.store) {
+			instance.store = options.store;
+		}
+
+		const scaffolding = instance.scaffolding = new Scaffolding({
+			idProperty: instance.idProperty
+		});
 
 		scaffolding.shouldReloadParent = instance.shouldReloadParent.bind(instance);
 		scaffolding.add({
