@@ -18,7 +18,7 @@ let viewForGridChildren: {
 };
 
 function sortListener(this: Dgrid, event: MouseEvent) {
-	let target = <SortTarget>event.target;
+	let target = <SortTarget> event.target;
 	while (target.parentNode) {
 		if (target.tagName === 'TH') {
 			if (target.sortable) {
@@ -31,7 +31,7 @@ function sortListener(this: Dgrid, event: MouseEvent) {
 			}
 			return;
 		}
-		target = <SortTarget>target.parentNode;
+		target = <SortTarget> target.parentNode;
 	}
 }
 

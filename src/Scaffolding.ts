@@ -313,7 +313,7 @@ class Scaffolding<T> {
 								childViews.push(oldView);
 							}
 							else {
-								let children = childrenCache[cacheKey]; 
+								let children = childrenCache[cacheKey];
 								if (depth >= 0 || !children || !children.length) {
 									// calculate all children (with matching prefilled arguments) and append those
 									children = this.buildFromPath(rootContext, path, tempPrefill, tempPrefilledByPaths, depth - 1);
