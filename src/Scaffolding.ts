@@ -1,5 +1,5 @@
 
-import { Column, isColumn } from './Dgrid';
+import { isColumn } from './Dgrid';
 import View from './interfaces/View';
 
 interface ObjectLiteral {
