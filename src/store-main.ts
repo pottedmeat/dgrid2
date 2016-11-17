@@ -3,15 +3,16 @@ import createObservableStoreMixin from 'dojo-stores/store/mixins/createObservabl
 import createQueryMixin from 'dojo-stores/store/mixins/createQueryMixin';
 import createSubcollectionStore from 'dojo-stores/store/createSubcollectionStore';
 import { h, VNode } from 'maquette';
-import Dgrid, { Column } from './Dgrid';
-import { default as createMaquetteGrid } from './maquette/createGrid';
+import Dgrid, { Column, createDgrid } from './Dgrid';
+import Renderer from './maquette/Renderer';
 import createVirtualScrollingMixin from './mixins/createVirtualScrollingMixin';
 
-const createVirtualGrid = compose.create(Dgrid,
-	function initialize(grid: Dgrid) {
-		grid.props = options.props;
-	})
-	.mixin(createVirtualScrollingMixin());
+const createVirtualGrid = compose.mixin(createDgrid, createVirtualScrollingMixin())
+	.mixin({
+		initialize: function (grid: Dgrid) {
+			grid.renderer = new Renderer();
+		}
+	});
 
 interface Person {
 	age: number;
@@ -45,7 +46,7 @@ function createData(count: number): Person[] {
 }
 
 console.time('createData');
-const data = createData(5000);
+const data = createData(500);
 console.timeEnd('createData');
 console.time('createStore');
 const store = createSubcollectionStore.mixin(createQueryMixin()).mixin(createObservableStoreMixin())(({
@@ -86,7 +87,8 @@ const props = {
 	// collection: data
 };
 
-let grid = createMaquetteGrid(props);
+let grid = createVirtualGrid(props);
+
 grid.customize = {
 	headerCellViewForGrid: function(grid: Dgrid, column: Column, view?: { render: VNode }) {
 		view = (view || { render: null });

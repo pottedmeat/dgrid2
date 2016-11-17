@@ -12,12 +12,16 @@ function createVirtualScrollingMixin<T, O, U, P>(): ComposeMixinDescriptor<any, 
 	return {
 		mixin: {
 			_onScroll: function (event: UIEvent) {
-				console.dir(event);
+				// TODO: virtual things!
 			}
 		},
 		initialize: function(instance: VirtualScrollingGrid, options: any) {
-			// TODO: is there a better way to add an event handler and/or extend the rendering process?
-			this.bodyForGrid = function bodyForGrid(grid: Dgrid, rows: VNode[], view?: {render: VNode}) {
+			// TODO: is there a better way to add an event handler?
+			// FIXME: how to extend the rendering process?
+			// setting instance.bodyForGrid seems less than ideal, but even that doesn't work - Dgrid's intialize has
+			// already set instance.bodyForGrid as the callback in the scaffolding, so we have to delve into there to
+			// change it
+			instance.scaffolding.infoByPath.bodyForGrid.callback = function bodyForGrid(grid: Dgrid, rows: VNode[], view?: {render: VNode}) {
 				view = (view || { render: null });
 				view.render = h('div.dgrid-scroller',
 					{ onscroll: instance._onScroll },
