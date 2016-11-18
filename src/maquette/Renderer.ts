@@ -143,6 +143,7 @@ class Renderer implements _Renderer {
 		view = (view || { render: null });
 		view.render = h('div.dgrid-row', {
 			id: grid.id + '-row-' + rowId,
+			dgridData: data,
 			role: 'row',
 			key: rowId
 		}, content);

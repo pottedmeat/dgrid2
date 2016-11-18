@@ -6,8 +6,16 @@ import { h, VNode } from 'maquette';
 import Dgrid, { Column, createDgrid } from './Dgrid';
 import Renderer from './maquette/Renderer';
 import createVirtualScrollingMixin from './mixins/createVirtualScrollingMixin';
+import createSelectionMixin from './mixins/createSelectionMixin';
 
-const createVirtualGrid = compose.mixin(createDgrid, createVirtualScrollingMixin())
+// const createVirtualRender = compose.mixin(createMaquetteRender, createVirtualScrollingMixin());
+/*const createVirtualGrid = compose.mixin(createDgrid, createVirtualScrollingMixin())
+	.mixin({
+		initialize: function (grid: Dgrid) {
+			grid.renderer = new Renderer();
+		}
+	});*/
+const createSelectionGrid = compose.mixin(createDgrid, createSelectionMixin())
 	.mixin({
 		initialize: function (grid: Dgrid) {
 			grid.renderer = new Renderer();
@@ -87,7 +95,7 @@ const props = {
 	// collection: data
 };
 
-let grid = createVirtualGrid(props);
+let grid = createSelectionGrid(props);
 
 grid.customize = {
 	headerCellViewForGrid: function(grid: Dgrid, column: Column, view?: { render: VNode }) {

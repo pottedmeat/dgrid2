@@ -190,6 +190,14 @@ export const createDgrid = compose(<Dgrid> {
 		this.scaffolding.registerView(view, identifier);
 	},
 
+	row (element: HTMLElement): HTMLElement {
+		while (!(<any> element).dgridData && element.parentElement && element !== this.domNode) {
+			element = element.parentElement;
+		}
+
+		return element;
+	},
+
 	viewWithIdentifier (identifier: string): any {
 		return this.scaffolding.viewWithIdentifier(identifier);
 	},
