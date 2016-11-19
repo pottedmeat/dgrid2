@@ -48,12 +48,14 @@ export interface DgridProperties {
 	domNode: HTMLElement;
 	columns: Column[];
 	collection?: any[];
+	id?: string;
 	idProperty?: string;
 	store?: Store<any, CrudOptions, UpdateResults<any>>;
 }
 
 type ObservableStore = Store<any, CrudOptions, UpdateResults<any>> & ObservableStoreMixin<any>;
 
+let autoId = 0;
 let scrollbarWidth = 0;
 
 function cleanupTestElement(element: HTMLElement) {
@@ -61,6 +63,10 @@ function cleanupTestElement(element: HTMLElement) {
 	if (element.parentNode) {
 		document.body.removeChild(element);
 	}
+}
+
+function generateId(): string {
+	return 'dgrid_' + String(autoId++);
 }
 
 function getScrollbarSize(element: HTMLElement, dimension: string) {
@@ -90,6 +96,7 @@ interface Dgrid {
 	store: Store<any, CrudOptions, UpdateResults<any>>;
 	_store: Store<any, CrudOptions, UpdateResults<any>>;
 	_storeSubscription: Subscription;
+	id: string;
 	idProperty: string;
 	state: {[key: string]: any};
 	options: DgridProperties;
@@ -103,6 +110,7 @@ interface Dgrid {
 export const createDgrid = compose(<Dgrid> {
 	_store: null,
 	_storeSubscription: null,
+	id: '',
 	idProperty: 'id',
 	state: null,
 	options: null,
@@ -113,6 +121,8 @@ export const createDgrid = compose(<Dgrid> {
 	sort: null
 }, function (instance: Dgrid, options: DgridProperties) {
 	instance.options = options;
+	instance.id = options.domNode.id || options.id || generateId();
+	options.domNode.id = instance.id;
 }).extend({
 	get store(): any {
 		return this._store;

@@ -6,12 +6,15 @@ import { emit } from 'dojo-core/on';
 let viewForGridChildren: {
 	header: VNode,
 	body: VNode,
+	id: string;
 	renderMaquette: () => VNode
 } = {
 	header: null,
 	body: null,
+	id: '',
 	renderMaquette: function() {
 		return h('div.dgrid-maquette.dgrid.dgrid-grid', {
+			id: this.id,
 			role: 'grid'
 		}, [this.header, this.body]);
 	}
@@ -53,6 +56,8 @@ class Renderer implements _Renderer {
 	viewForGrid(grid: Dgrid, header: VNode, body: VNode, view?: {domNode: HTMLElement}) {
 		viewForGridChildren.header = header;
 		viewForGridChildren.body = body;
+		viewForGridChildren.id = grid.id;
+
 		if (view) {
 			this.projector.scheduleRender();
 			return view;
