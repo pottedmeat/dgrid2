@@ -6,17 +6,14 @@ import Dgrid from '../Dgrid';
 export interface Selection {
 	_lastSelected: HTMLElement;
 	_selectionHandlerName: string;
+	_selectionMode: string;
 	_selectionTriggerEvent: UIEvent;
 	_waitForMouseUp: HTMLElement;
 	allSelected: boolean;
 	selection: {
 		[key: string]: boolean;
 	};
-
-	_fireSelectionEvents(): void;
-	_handleSelect(event: UIEvent, target: HTMLElement): void;
-	_select(startingRow: HTMLElement, endingRow?: HTMLElement, isSelected?: boolean): void;
-	allowSelect(element: HTMLElement): boolean;
+	selectionMode: string;
 }
 
 export type SelectionGrid = Selection & Dgrid;
@@ -33,12 +30,13 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				return true;
 			},
 
+			/**
+			 * Deselects any currently-selected items.
+			 *
+			 * @param [exceptId] If specified, the given id will not be deselected.
+			 * @param [dontResetLastSelected] If true, `this._lastSelected` will not be cleared
+			 */
 			clearSelection(exceptId?: string, dontResetLastSelected?: boolean) {
-				// summary:
-				// 		Deselects any currently-selected items.
-				// exceptId: Mixed?
-				// 		If specified, the given id will not be deselected.
-
 				this.allSelected = false;
 
 				for (let id in this.selection) {
@@ -46,16 +44,18 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 						this._select(id, null, false);
 					}
 				}
+
 				if (!dontResetLastSelected) {
 					this._lastSelected = null;
 				}
+
 				this._fireSelectionEvents();
 			},
 
+			/**
+			 * Returns true if the indicated row is selected.
+			 */
 			isSelected(row: HTMLElement): boolean {
-				// summary:
-				// 		Returns true if the indicated row is selected.
-
 				if (row == null) {
 					return false;
 				}
@@ -81,7 +81,48 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				return isSelected;
 			},
 
-			select() {
+			/**
+			 * Selects or deselects the given row or range of rows.
+			 *
+			 * @param startingRow Row object (or something that can resolve to one) to (de)select
+			 * @param [endingRow] If specified, the inclusive range between `startingRow` and `endingRow` will
+			 * 		be (de)selected
+			 * @param [isSelected] Whether to select (true/default), deselect (false), or toggle (null) the row
+			 */
+			select(startingRow: HTMLElement, endingRow?: HTMLElement, isSelected?: boolean) {
+				this._select(startingRow, endingRow, isSelected);
+				this._fireSelectionEvents();
+			},
+
+			/**
+			 * Deselects the given row or range of rows.
+			 *
+			 * @param startingRow Row object (or something that can resolve to one) to deselect
+			 * @param [endingRow] If specified, the inclusive range between `startingRow` and `endingRow` will
+			 * 		be deselected
+			 */
+			deselect: function (startingRow: HTMLElement, endingRow?: HTMLElement) {
+				this.select(startingRow, endingRow, false);
+			},
+
+			get selectionMode(): string {
+				return this._selectionMode;
+			},
+
+			set selectionMode(mode: string) {
+				if (mode === this._selectionMode) {
+					return;
+				}
+
+				this.clearSelection();
+				this._selectionMode = mode;
+				this._selectionHandlerName = '_' + mode + 'SelectionHandler';
+
+				// Also re-run allowTextSelection setter in case it is in automatic mode.
+				// TODO: this._setAllowTextSelection(this.allowTextSelection);
+			},
+
+			_fireSelectionEvents() {
 
 			},
 
@@ -102,22 +143,47 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				if (!(<KeyboardEvent> event).keyCode || !(<KeyboardEvent> event).ctrlKey || (<KeyboardEvent> event).keyCode === 32) {
 					// If clicking a selected item, wait for mouseup so that drag n' drop
 					// is possible without losing our selection
-					if (!(<KeyboardEvent> event).shiftKey && event.type === downType && this.isSelected(target)) {
+					if (!(<KeyboardEvent> event).shiftKey && event.type === downType && this.isSelected(row)) {
 						this._waitForMouseUp = target;
 					}
 					else {
-						this[this._selectionHandlerName](event, target);
+						this[this._selectionHandlerName](event, row);
 					}
 				}
 
 				this._selectionTriggerEvent = null;
 			},
 
-			_singleSelectionHandler(event: UIEvent, target: HTMLElement) {
-				// summary:
-				// 		Selection handler for "single" mode, where only one target may be
-				// 		selected at a time.
+			_select(startingRow: HTMLElement, endingRow?: HTMLElement, isSelected: boolean = true) {
+				const rowId = (<any> startingRow).dgridData[this.idProperty];
 
+				if (isSelected === false || this.allowSelect(startingRow)) {
+					const previousValue = !!this.selection[rowId];
+
+					if (isSelected === null) {
+						isSelected = !previousValue;
+					}
+
+					if (!isSelected && !this.allSelected) {
+						delete this.selection[rowId];
+					}
+					else {
+						this.selection[rowId] = isSelected;
+					}
+
+					if (isSelected) {
+						startingRow.classList.add('dgrid-selected');
+					}
+					else {
+						startingRow.classList.remove('dgrid-selected');
+					}
+				}
+			},
+
+			/**
+			 * Selection handler for "single" mode, where only one target may be selected at a time.
+			 */
+			_singleSelectionHandler(event: UIEvent, target: HTMLElement) {
 				const ctrlKey = (<KeyboardEvent> event).keyCode ? (<KeyboardEvent> event).ctrlKey : (<any> event)[ctrlEquiv];
 
 				if (this._lastSelected === target) {
@@ -131,14 +197,17 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				}
 			}
 		},
-		initialize(instance: SelectionGrid, options: any) {
-			instance._selectionHandlerName = 'none';
+
+		initialize(grid: SelectionGrid, options: any) {
+			grid.selection = {};
+			grid.selectionMode = options.selectionMode || 'none';
 		},
+
 		aspectAdvice: {
 			after: {
 				startup() {
-					delegate(this.domNode, '.dgrid-row', 'click', function (event: UIEvent) {
-						this._handleSelect(event, this);
+					delegate(this.domNode, '.dgrid-row', 'click', (event: UIEvent) => {
+						this._handleSelect(event, event.target);
 					});
 				}
 			}

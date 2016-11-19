@@ -91,7 +91,8 @@ const props = {
 			label: ''
 		}
 	],
-	idProperty: 'uuid'
+	idProperty: 'uuid',
+	selectionMode: 'single'
 	// collection: data
 };
 
