@@ -1,12 +1,23 @@
 import { ComposeMixinDescriptor } from 'dojo-compose/compose';
+import { emit } from 'dojo-core/on';
 import delegate from 'dojo-dom/delegate';
 import { h, VNode } from 'maquette';
 import Dgrid from '../Dgrid';
 
 export interface Selection {
 	_lastSelected: HTMLElement;
+	_selectionEventQueues: {
+		deselect: string[];
+		select: string[];
+	};
 	_selectionHandlerName: string;
 	_selectionMode: string;
+
+	/**
+	 * Indicates the property added to emitted events for selected targets; overridden in CellSelection
+	 */
+	_selectionTargetType: string;
+
 	_selectionTriggerEvent: UIEvent;
 	_waitForMouseUp: HTMLElement;
 	allSelected: boolean;
@@ -41,7 +52,7 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 
 				for (let id in this.selection) {
 					if (exceptId !== id) {
-						this._select(id, null, false);
+						this._select(this.row(id), null, false);
 					}
 				}
 
@@ -122,8 +133,28 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				// TODO: this._setAllowTextSelection(this.allowTextSelection);
 			},
 
-			_fireSelectionEvents() {
+			_fireSelectionEvent(type: string) {
+				const eventObject = {
+					bubbles: true,
+					grid: this,
+					type: 'dgrid-' + type
+				};
 
+				if (this._selectionTriggerEvent) {
+					(<any> eventObject).parentType = this._selectionTriggerEvent.type;
+				}
+
+				(<any> eventObject)[this._selectionTargetType] = this._selectionEventQueues[type];
+				this._selectionEventQueues[type] = [];
+				emit(this, eventObject);
+			},
+
+			_fireSelectionEvents() {
+				for (let type in this._selectionEventQueues) {
+					if (this._selectionEventQueues[type].length) {
+						this._fireSelectionEvent(type);
+					}
+				}
 			},
 
 			_handleSelect(event: UIEvent, target: HTMLElement) {
@@ -155,8 +186,12 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 			},
 
 			_select(startingRow: HTMLElement, endingRow?: HTMLElement, isSelected: boolean = true) {
-				const rowId = (<any> startingRow).dgridData[this.idProperty];
+				const rowId = this.scaffolding.identify((<any> startingRow).dgridData);
 
+				// Check whether we're allowed to select the given row before proceeding.
+				// If a deselect operation is being performed, this check is skipped,
+				// to avoid errors when changing column definitions, and since disabled
+				// rows shouldn't ever be selected anyway.
 				if (isSelected === false || this.allowSelect(startingRow)) {
 					const previousValue = !!this.selection[rowId];
 
@@ -176,6 +211,15 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 					}
 					else {
 						startingRow.classList.remove('dgrid-selected');
+					}
+
+					if (isSelected !== previousValue) {
+						if (isSelected) {
+							this._selectionEventQueues.select.push(startingRow);
+						}
+						else {
+							this._selectionEventQueues.deselect.push(startingRow);
+						}
 					}
 				}
 			},
@@ -201,6 +245,11 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 		initialize(grid: SelectionGrid, options: any) {
 			grid.selection = {};
 			grid.selectionMode = options.selectionMode || 'none';
+			grid._selectionEventQueues = {
+				deselect: [],
+				select: []
+			};
+			grid._selectionTargetType = 'rows';
 		},
 
 		aspectAdvice: {

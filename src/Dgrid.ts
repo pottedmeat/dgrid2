@@ -149,6 +149,10 @@ export const createDgrid = compose(<Dgrid> {
 		}
 	},
 
+	_generateRowId(objectId: string): string {
+		return this.id + '-row-' + objectId;
+	},
+
 	_updateCollectionFromStore() {
 		console.time('store.fetch');
 		this._store.fetch().then((data: any[]) => {
@@ -190,12 +194,30 @@ export const createDgrid = compose(<Dgrid> {
 		this.scaffolding.registerView(view, identifier);
 	},
 
-	row (element: HTMLElement): HTMLElement {
-		while (!(<any> element).dgridData && element.parentElement && element !== this.domNode) {
-			element = element.parentElement;
+	/**
+	 * Get the row node for an object id or DOM node.
+	 *
+	 * @param target If a string is specified, it must be the id of a data object.
+	 * 		If a node is specified, it must be a row node, or descendant of a row node.
+	 * @returns The row node, or undefined if it does not exist.
+	 */
+	row (target: string | HTMLElement): HTMLElement {
+		let row = <HTMLElement> target;
+
+		if (row instanceof HTMLElement) {
+			if (!this.domNode.contains(row)) {
+				return;
+			}
+
+			while (!(<any> row).dgridData && row.parentElement && row !== this.domNode) {
+				row = row.parentElement;
+			}
+		}
+		else if (typeof target === 'string') {
+			row = document.getElementById(this._generateRowId(target));
 		}
 
-		return element;
+		return row;
 	},
 
 	viewWithIdentifier (identifier: string): any {

@@ -138,14 +138,14 @@ class Renderer implements _Renderer {
 	}
 
 	rowForGrid(grid: Dgrid, data: any, content: VNode, view?: { render: VNode }) {
-		const rowId = grid.scaffolding.identify(data);
+		const objectId = grid.scaffolding.identify(data);
 
 		view = (view || { render: null });
 		view.render = h('div.dgrid-row', {
-			id: grid.id + '-row-' + rowId,
+			id: grid._generateRowId(objectId),
 			dgridData: data,
 			role: 'row',
-			key: rowId
+			key: objectId
 		}, content);
 		return view;
 	}
