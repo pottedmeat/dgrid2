@@ -111,7 +111,7 @@ class Scaffolding<T> {
 		for (const path of paths) {
 			if (path.length === 2) {
 				if (!path[1]) {
-					debugger;
+					console.trace();
 				}
 				ids.push(path[1]);
 			}
