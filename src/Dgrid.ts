@@ -155,7 +155,7 @@ export const createDgrid = compose(<Dgrid> {
 			console.timeEnd('store.fetch');
 			this.options.collection = data;
 			console.time('scaffolding.reloadAt');
-			this.scaffolding.reloadAt(this, 'bodyForGrid');
+			this.scaffolding.reloadAt(this, 'body');
 			console.timeEnd('scaffolding.reloadAt');
 		});
 	},
@@ -163,7 +163,7 @@ export const createDgrid = compose(<Dgrid> {
 	reloadData(at?: { row?: number, column?: string }) {
 		let column: Column;
 		if (!at) {
-			this.scaffolding.reloadPath(this, 'bodyForGrid');
+			this.scaffolding.reloadPath(this, 'body');
 		}
 		else {
 			if ('column' in at) {
@@ -175,10 +175,10 @@ export const createDgrid = compose(<Dgrid> {
 				}
 			}
 			if ('row' in at && 'column' in at) {
-				this.scaffolding.reloadPath(this, 'rowForGrid', [this.options.collection[at.row], column]);
+				this.scaffolding.reloadPath(this, 'row', [this.options.collection[at.row], column]);
 			}
 			else if ('row' in at) {
-				this.scaffolding.reloadPath(this, 'rowForGrid', [this.options.collection[at.row]]);
+				this.scaffolding.reloadPath(this, 'row', [this.options.collection[at.row]]);
 			}
 			else if ('column' in at) {
 				// should this be done?
@@ -198,11 +198,11 @@ export const createDgrid = compose(<Dgrid> {
 		return this.renderer.shouldReloadParent(oldRender, newRender);
 	},
 
-	viewForGrid(grid: Dgrid, header: any, body: any, view?: any) {
+	_view(grid: Dgrid, header: any, body: any, view?: any) {
 		return this.renderer.viewForGrid(grid, header, body, view);
 	},
 
-	headerForGrid(grid: Dgrid, content: any, view?: any) {
+	_header(grid: Dgrid, content: any, view?: any) {
 		if (!scrollbarWidth) {
 			// Measure the browser's scrollbar width using a DIV we'll delete right away
 			scrollbarWidth = <number> has('dom-scrollbar-width');
@@ -210,7 +210,7 @@ export const createDgrid = compose(<Dgrid> {
 		return this.renderer.headerForGrid(grid, content, scrollbarWidth, view);
 	},
 
-	headerViewForGrid(grid: Dgrid, children: any[], view?: any) {
+	_headerView(grid: Dgrid, children: any[], view?: any) {
 		const cells: { [key: string]: any } = {},
 			columns = this.options.columns;
 		for (let i = 0, il = columns.length; i < il; i++) {
@@ -222,26 +222,26 @@ export const createDgrid = compose(<Dgrid> {
 		return this.renderer.headerViewForGrid(grid, columns, cells, view);
 	},
 
-	headerCellForGrid(grid: Dgrid, column: Column, content: any, view?: any) {
+	_headerCell(grid: Dgrid, column: Column, content: any, view?: any) {
 		return this.renderer.headerCellForGrid(grid, column, content, view);
 	},
 
-	headerCellViewForGrid(grid: Dgrid, column: Column, view?: any) {
+	_headerCellView(grid: Dgrid, column: Column, view?: any) {
 		if (this.customize && this.customize.headerCellViewForGrid) {
 			return this.customize.headerCellViewForGrid(grid, column, view);
 		}
 		return this.renderer.headerCellViewForGrid(grid, column, view);
 	},
 
-	bodyForGrid(grid: Dgrid, rows: any[], view?: any) {
+	_body(grid: Dgrid, rows: any[], view?: any) {
 		return this.renderer.bodyForGrid(grid, rows, view);
 	},
 
-	rowForGrid(grid: Dgrid, data: any, content: any, view?: any) {
+	_row(grid: Dgrid, data: any, content: any, view?: any) {
 		return this.renderer.rowForGrid(grid, data, content, view);
 	},
 
-	rowViewForGrid(grid: Dgrid, data: any, children: any[], view?: any) {
+	_rowView(grid: Dgrid, data: any, children: any[], view?: any) {
 		const cells: { [key: string]: any } = {},
 			columns = this.options.columns;
 		for (let i = 0, il = columns.length; i < il; i++) {
@@ -253,11 +253,11 @@ export const createDgrid = compose(<Dgrid> {
 		return this.renderer.rowViewForGrid(grid, data, columns, cells, view);
 	},
 
-	cellForGrid(grid: Dgrid, data: any, column: Column, content: any, view?: any) {
+	_cell(grid: Dgrid, data: any, column: Column, content: any, view?: any) {
 		return this.renderer.cellForGrid(grid, data, column, content, view);
 	},
 
-	cellViewForGrid(grid: Dgrid, data: any, column: Column, view?: any) {
+	_cellView(grid: Dgrid, data: any, column: Column, view?: any) {
 		if (this.customize && this.customize.cellViewForGrid) {
 			return this.customize.cellViewForGrid(grid, data, column, view);
 		}
@@ -315,50 +315,50 @@ export const createDgrid = compose(<Dgrid> {
 
 		scaffolding.shouldReloadParent = instance.shouldReloadParent.bind(instance);
 		scaffolding.add({
-			id: 'viewForGrid',
+			id: 'view',
 			context: instance,
-			callback: instance.viewForGrid
+			callback: instance._view
 		});
 		scaffolding.add(({
-			id: 'headerForGrid',
+			id: 'header',
 			context: instance,
-			callback: instance.headerForGrid,
-			parent: 'viewForGrid'
+			callback: instance._header,
+			parent: 'view'
 		}));
 		scaffolding.add({
-			id: 'headerViewForGrid',
+			id: 'headerView',
 			context: instance,
-			callback: instance.headerViewForGrid,
-			parent: 'headerForGrid',
+			callback: instance._headerView,
+			parent: 'header',
 			groupChildren: true
 		});
 		scaffolding.add({
-			id: 'headerCellForGrid',
+			id: 'headerCell',
 			context: instance,
-			callback: instance.headerCellForGrid,
-			parent: 'headerViewForGrid',
+			callback: instance._headerCell,
+			parent: 'headerView',
 			over: () => {
 				return instance.options.columns;
 			}
 		});
 		scaffolding.add({
-			id: 'headerCellViewForGrid',
+			id: 'headerCellView',
 			context: instance,
-			callback: instance.headerCellViewForGrid,
-			parent: 'headerCellForGrid'
+			callback: instance._headerCellView,
+			parent: 'headerCell'
 		});
 		scaffolding.add({
-			id: 'bodyForGrid',
+			id: 'body',
 			context: instance,
-			callback: instance.bodyForGrid,
-			parent: 'viewForGrid',
+			callback: instance._body,
+			parent: 'view',
 			groupChildren: true
 		});
 		scaffolding.add({
-			id: 'rowForGrid',
+			id: 'row',
 			context: instance,
-			callback: instance.rowForGrid,
-			parent: 'bodyForGrid',
+			callback: instance._row,
+			parent: 'body',
 			over: () => {
 				return instance.options.collection;
 			},
@@ -376,26 +376,26 @@ export const createDgrid = compose(<Dgrid> {
 			}
 		});
 		scaffolding.add({
-			id: 'rowViewForGrid',
+			id: 'rowView',
 			context: instance,
-			callback: instance.rowViewForGrid,
-			parent: 'rowForGrid',
+			callback: instance._rowView,
+			parent: 'row',
 			groupChildren: true
 		});
 		scaffolding.add({
-			id: 'cellForGrid',
+			id: 'cell',
 			context: instance,
-			callback: instance.cellForGrid,
-			parent: 'rowViewForGrid',
+			callback: instance._cell,
+			parent: 'rowView',
 			over: () => {
 				return instance.options.columns;
 			}
 		});
 		scaffolding.add({
-			id: 'cellViewForGrid',
+			id: 'cellView',
 			context: instance,
-			callback: instance.cellViewForGrid,
-			parent: 'cellForGrid'
+			callback: instance._cellView,
+			parent: 'cell'
 		});
 	}
 }).mixin(createEvented);
