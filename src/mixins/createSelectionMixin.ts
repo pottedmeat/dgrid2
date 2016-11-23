@@ -4,7 +4,10 @@ import delegate from 'dojo-dom/delegate';
 import { h, VNode } from 'maquette';
 import Dgrid from '../Dgrid';
 
+export type TextSelectionType = 'always' | 'never' | 'selectionModeNone';
+
 export interface Selection {
+	_allowTextSelection: TextSelectionType;
 	_lastSelected: HTMLElement;
 	_selectionEventQueues: {
 		deselect: string[];
@@ -39,6 +42,23 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 		mixin: {
 			allowSelect() {
 				return true;
+			},
+
+			get allowTextSelection(): TextSelectionType {
+				return this._allowTextSelection;
+			},
+
+			set allowTextSelection(newValue: TextSelectionType) {
+				let userSelectValue = 'text';
+
+				if (newValue === 'never' ||
+					(newValue === 'selectionModeNone' && this.selectionMode !== 'none')) {
+					userSelectValue = 'none';
+				}
+
+				this._allowTextSelection = newValue;
+				// TODO: if all supported browsers don't support CSS user-select, add workarounds from dgrid 1
+				this.domNode.querySelector('.dgrid-scroller').style.userSelect = userSelectValue;
 			},
 
 			/**
@@ -130,7 +150,7 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				this._selectionHandlerName = '_' + mode + 'SelectionHandler';
 
 				// Also re-run allowTextSelection setter in case it is in automatic mode.
-				// TODO: this._setAllowTextSelection(this.allowTextSelection);
+				this.allowTextSelection = this._allowTextSelection;
 			},
 
 			_fireSelectionEvent(type: string) {
@@ -243,6 +263,7 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 		},
 
 		initialize(grid: SelectionGrid, options: any) {
+			grid._allowTextSelection = 'selectionModeNone';
 			grid.selection = {};
 			grid.selectionMode = options.selectionMode || 'none';
 			grid._selectionEventQueues = {
