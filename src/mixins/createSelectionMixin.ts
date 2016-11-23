@@ -125,6 +125,19 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				this._fireSelectionEvents();
 			},
 
+			selectAll() {
+				this.allSelected = true;
+				this.selection = {};
+
+				for (let i = 0; i < this.props.collection.length; i++) {
+					// FIXME: this needs to get the row object's id
+					const row = this.row(this.props.collection[i]);
+					this._select(row, null, true);
+				}
+
+				this._fireSelectionEvents();
+			},
+
 			/**
 			 * Deselects the given row or range of rows.
 			 *
@@ -259,6 +272,62 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 					this.select(target);
 					this._lastSelected = target;
 				}
+			},
+
+			/**
+			 * Selection handler for "multiple" mode, where shift can be held to select ranges, ctrl/cmd can be
+			 * held to toggle, and clicks/keystrokes without modifier keys will add to the current selection.
+			 */
+			_multipleSelectionHandler(event: UIEvent, target: HTMLElement) {
+				const ctrlKey = (<KeyboardEvent> event).keyCode ? (<KeyboardEvent> event).ctrlKey : (<any> event)[ctrlEquiv];
+
+				let lastRow = this._lastSelected;
+				let isSelected: boolean;
+
+				if (!(<KeyboardEvent> event).shiftKey) {
+					// Toggle if ctrl is held; otherwise select
+					isSelected = ctrlKey ? null : true;
+					lastRow = null;
+				}
+
+				this.select(target, lastRow, isSelected);
+
+				if (!lastRow) {
+					// Update reference for potential subsequent shift+select
+					// (current row was already selected above)
+					this._lastSelected = target;
+				}
+			},
+
+			/**
+			 * Selection handler for "extended" mode, which is like multiple mode except that clicks/keystrokes
+			 * without modifier keys will clear the previous selection.
+			 */
+			_extendedSelectionHandler(event: UIEvent, target: HTMLElement) {
+				// Clear selection first for right-clicks outside selection and non-ctrl-clicks;
+				// otherwise, extended mode logic is identical to multiple mode
+				if ((<MouseEvent> event).button === /* secondary/right button */ 2) {
+					if (!this.isSelected(target)) {
+						this.clearSelection(null, true);
+					}
+				}
+				else if ((<KeyboardEvent> event).keyCode &&
+					!(<MouseEvent> event).ctrlKey) {
+					this.clearSelection(null, true);
+				}
+				else if (!(<any> event)[ctrlEquiv]) {
+					this.clearSelection(null, true);
+				}
+
+				this._multipleSelectionHandler(event, target);
+			},
+
+			/**
+			 * Selection handler for "toggle" mode which simply toggles the selection of the given target.
+			 * Primarily useful for touch input.
+			 */
+			_toggleSelectionHandler(event: UIEvent, target: HTMLElement) {
+				this.select(target, null, null);
 			}
 		},
 
