@@ -26,6 +26,10 @@ export function isColumn(object: any): object is Column {
 	return 'id' in object && 'label' in object;
 }
 
+export interface RowElement extends HTMLElement {
+	dgridData: any;
+}
+
 export interface Sort {
 	property: string;
 	descending: boolean;
@@ -91,6 +95,19 @@ addHas('dom-scrollbar-height', function () {
 	return getScrollbarSize(document.createElement('div'), 'Height');
 });
 
+function identify(this: Dgrid, item: any) {
+	let id: string;
+
+	if (this._store) {
+		id = this._store.identify(item)[0];
+	}
+	else {
+		id = item[this.idProperty];
+	}
+
+	return id;
+}
+
 interface Dgrid {
 	// TODO: this seems like a legitimate use of any, but should/can this be generic?
 	store: Store<any, CrudOptions, UpdateResults<any>>;
@@ -153,6 +170,12 @@ export const createDgrid = compose(<Dgrid> {
 		return this.id + '-row-' + objectId;
 	},
 
+	_handleRowClick(row: RowElement, event: UIEvent) {
+		// hook for extension
+	},
+
+	identify: identify,
+
 	_updateCollectionFromStore() {
 		console.time('store.fetch');
 		this._store.fetch().then((data: any[]) => {
@@ -201,20 +224,32 @@ export const createDgrid = compose(<Dgrid> {
 	 * 		If a node is specified, it must be a row node, or descendant of a row node.
 	 * @returns The row node, or undefined if it does not exist.
 	 */
-	row (target: string | HTMLElement): HTMLElement {
-		let row = <HTMLElement> target;
+	row (target: string | HTMLElement | Object): RowElement {
+		let rowId: string;
+		let row = <RowElement> target;
 
 		if (row instanceof HTMLElement) {
 			if (!this.domNode.contains(row)) {
 				return;
 			}
 
-			while (!(<any> row).dgridData && row.parentElement && row !== this.domNode) {
-				row = row.parentElement;
+			while (!row.dgridData && row.parentElement && row !== this.domNode) {
+				row = <RowElement> row.parentElement;
+			}
+
+			if (row === this.domNode) {
+				row = undefined;
 			}
 		}
-		else if (typeof target === 'string') {
-			row = document.getElementById(this._generateRowId(target));
+		else {
+			if (typeof target === 'string') {
+				rowId = target;
+			}
+			else {
+				rowId = this.identify(target);
+			}
+
+			row = <RowElement> document.getElementById(this._generateRowId(rowId));
 		}
 
 		return row;
@@ -392,18 +427,7 @@ export const createDgrid = compose(<Dgrid> {
 			over: () => {
 				return instance.options.collection;
 			},
-			identify: (item: any) => {
-				let id: string;
-
-				if (instance._store) {
-					id = instance._store.identify(item)[0];
-				}
-				else {
-					id = item[instance.idProperty];
-				}
-
-				return id;
-			}
+			identify: identify.bind(instance)
 		});
 		scaffolding.add({
 			id: 'rowView',

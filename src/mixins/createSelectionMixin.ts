@@ -1,6 +1,6 @@
+import { RowElement } from './../Dgrid';
 import { ComposeMixinDescriptor } from 'dojo-compose/compose';
 import { emit } from 'dojo-core/on';
-import delegate from 'dojo-dom/delegate';
 import { h, VNode } from 'maquette';
 import Dgrid from '../Dgrid';
 
@@ -57,8 +57,13 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				}
 
 				this._allowTextSelection = newValue;
-				// TODO: if all supported browsers don't support CSS user-select, add workarounds from dgrid 1
-				this.domNode.querySelector('.dgrid-scroller').style.userSelect = userSelectValue;
+
+				// FIXME: how should this be handled? 'allowTextSelection' may be set before the DOM has been rendered
+				const bodyNode = this.domNode.querySelector('.dgrid-scroller');
+				if (bodyNode) {
+					// TODO: if all supported browsers don't support CSS user-select, add workarounds from dgrid 1
+					bodyNode.style.userSelect = userSelectValue;
+				}
 			},
 
 			/**
@@ -86,18 +91,18 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 			/**
 			 * Returns true if the indicated row is selected.
 			 */
-			isSelected(row: HTMLElement): boolean {
+			isSelected(row: RowElement): boolean {
 				if (row == null) {
 					return false;
 				}
 
 				let isSelected = false;
 
-				if (!(<any> row).dgridData) {
+				if (!row.dgridData) {
 					row = this.row(row);
 				}
 
-				let rowId = (<any> row).dgridData[this.idProperty];
+				let rowId = this.identify(row.dgridData);
 
 				// First check whether the given row is indicated in the selection hash;
 				// failing that, check if allSelected is true (testing against the
@@ -129,9 +134,8 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				this.allSelected = true;
 				this.selection = {};
 
-				for (let i = 0; i < this.props.collection.length; i++) {
-					// FIXME: this needs to get the row object's id
-					const row = this.row(this.props.collection[i]);
+				for (let i = 0; i < this.options.collection.length; i++) {
+					const row = this.row(this.options.collection[i]);
 					this._select(row, null, true);
 				}
 
@@ -190,16 +194,15 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				}
 			},
 
-			_handleSelect(event: UIEvent, target: HTMLElement) {
-				const row = this.row(target);
-
+			_handleSelect(row: RowElement, event: UIEvent) {
 				// Don't run if selection mode doesn't have a handler (incl. "none"), target can't be selected,
 				// or if coming from a dgrid-cellfocusin from a mousedown
 				if (!this[this._selectionHandlerName] || !this.allowSelect(row) ||
 						(event.type === 'dgrid-cellfocusin' && (<any> event).parentType === 'mousedown') ||
-						(event.type === upType && target !== this._waitForMouseUp)) {
+						(event.type === upType && event.target !== this._waitForMouseUp)) {
 					return;
 				}
+
 				this._waitForMouseUp = null;
 				this._selectionTriggerEvent = event;
 
@@ -208,18 +211,18 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 					// If clicking a selected item, wait for mouseup so that drag n' drop
 					// is possible without losing our selection
 					if (!(<KeyboardEvent> event).shiftKey && event.type === downType && this.isSelected(row)) {
-						this._waitForMouseUp = target;
+						this._waitForMouseUp = event.target;
 					}
 					else {
-						this[this._selectionHandlerName](event, row);
+						this[this._selectionHandlerName](row, event);
 					}
 				}
 
 				this._selectionTriggerEvent = null;
 			},
 
-			_select(startingRow: HTMLElement, endingRow?: HTMLElement, isSelected: boolean = true) {
-				const rowId = this.scaffolding.identify((<any> startingRow).dgridData);
+			_select(startingRow: RowElement, endingRow?: HTMLElement, isSelected: boolean = true) {
+				const rowId = this.identify(startingRow.dgridData);
 
 				// Check whether we're allowed to select the given row before proceeding.
 				// If a deselect operation is being performed, this check is skipped,
@@ -258,19 +261,19 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 			},
 
 			/**
-			 * Selection handler for "single" mode, where only one target may be selected at a time.
+			 * Selection handler for "single" mode, where only one row may be selected at a time.
 			 */
-			_singleSelectionHandler(event: UIEvent, target: HTMLElement) {
+			_singleSelectionHandler(row: RowElement, event: UIEvent) {
 				const ctrlKey = (<KeyboardEvent> event).keyCode ? (<KeyboardEvent> event).ctrlKey : (<any> event)[ctrlEquiv];
 
-				if (this._lastSelected === target) {
+				if (this._lastSelected === row) {
 					// Allow ctrl to toggle selection, even within single select mode.
-					this.select(target, null, !ctrlKey || !this.isSelected(target));
+					this.select(row, null, !ctrlKey || !this.isSelected(row));
 				}
 				else {
 					this.clearSelection();
-					this.select(target);
-					this._lastSelected = target;
+					this.select(row);
+					this._lastSelected = row;
 				}
 			},
 
@@ -278,7 +281,7 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 			 * Selection handler for "multiple" mode, where shift can be held to select ranges, ctrl/cmd can be
 			 * held to toggle, and clicks/keystrokes without modifier keys will add to the current selection.
 			 */
-			_multipleSelectionHandler(event: UIEvent, target: HTMLElement) {
+			_multipleSelectionHandler(row: RowElement, event: UIEvent) {
 				const ctrlKey = (<KeyboardEvent> event).keyCode ? (<KeyboardEvent> event).ctrlKey : (<any> event)[ctrlEquiv];
 
 				let lastRow = this._lastSelected;
@@ -290,12 +293,12 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 					lastRow = null;
 				}
 
-				this.select(target, lastRow, isSelected);
+				this.select(row, lastRow, isSelected);
 
 				if (!lastRow) {
 					// Update reference for potential subsequent shift+select
 					// (current row was already selected above)
-					this._lastSelected = target;
+					this._lastSelected = row;
 				}
 			},
 
@@ -303,11 +306,11 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 			 * Selection handler for "extended" mode, which is like multiple mode except that clicks/keystrokes
 			 * without modifier keys will clear the previous selection.
 			 */
-			_extendedSelectionHandler(event: UIEvent, target: HTMLElement) {
+			_extendedSelectionHandler(row: RowElement, event: UIEvent) {
 				// Clear selection first for right-clicks outside selection and non-ctrl-clicks;
 				// otherwise, extended mode logic is identical to multiple mode
 				if ((<MouseEvent> event).button === /* secondary/right button */ 2) {
-					if (!this.isSelected(target)) {
+					if (!this.isSelected(row)) {
 						this.clearSelection(null, true);
 					}
 				}
@@ -319,15 +322,15 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 					this.clearSelection(null, true);
 				}
 
-				this._multipleSelectionHandler(event, target);
+				this._multipleSelectionHandler(row, event);
 			},
 
 			/**
 			 * Selection handler for "toggle" mode which simply toggles the selection of the given target.
 			 * Primarily useful for touch input.
 			 */
-			_toggleSelectionHandler(event: UIEvent, target: HTMLElement) {
-				this.select(target, null, null);
+			_toggleSelectionHandler(row: RowElement, event: UIEvent) {
+				this.select(row, null, null);
 			}
 		},
 
@@ -344,10 +347,8 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 
 		aspectAdvice: {
 			after: {
-				startup() {
-					delegate(this.domNode, '.dgrid-row', 'click', (event: UIEvent) => {
-						this._handleSelect(event, event.target);
-					});
+				_handleRowClick: function(result: any, row: RowElement, event: UIEvent) {
+					this._handleSelect(row, event);
 				}
 			}
 		}

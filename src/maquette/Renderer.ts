@@ -20,6 +20,12 @@ let viewForGridChildren: {
 	}
 };
 
+function bodyClickListener(this: Dgrid, event: MouseEvent) {
+	let row = this.row(event.target);
+
+	this._handleRowClick(row, event);
+}
+
 function sortListener(this: Dgrid, event: MouseEvent) {
 	let target = <SortTarget> event.target;
 	while (target.parentNode) {
@@ -131,9 +137,10 @@ class Renderer implements _Renderer {
 
 	bodyForGrid(grid: Dgrid, rows: VNode[], view?: {render: VNode}) {
 		view = (view || { render: null });
-		view.render = h('div.dgrid-scroller', [
-			h('div.dgrid-content', rows)
-		]);
+		view.render = h('div.dgrid-scroller', {
+			onclick: bodyClickListener,
+			bind: grid
+		}, [ h('div.dgrid-content', rows) ]);
 		return view;
 	}
 
