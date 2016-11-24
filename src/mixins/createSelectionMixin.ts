@@ -170,6 +170,21 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				this.allowTextSelection = this._allowTextSelection;
 			},
 
+			// TODO: unnecessary? In dgrid 1, this is used by '_select' to handle 'endingRow'
+			// _determineSelectionDirection: function (from: Node, to: Node): string {
+			// 	const result = to.compareDocumentPosition(from);
+			// 	let direction: string;
+
+			// 	if (result === Node.DOCUMENT_POSITION_FOLLOWING) {
+			// 		direction = 'down';
+			// 	}
+			// 	else if (result === Node.DOCUMENT_POSITION_PRECEDING) {
+			// 		direction = 'up';
+			// 	}
+
+			// 	return direction;
+			// },
+
 			_fireSelectionEvent(type: string) {
 				const eventObject = {
 					bubbles: true,
@@ -221,7 +236,7 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 				this._selectionTriggerEvent = null;
 			},
 
-			_select(startingRow: RowElement, endingRow?: HTMLElement, isSelected: boolean = true) {
+			_select(startingRow: RowElement, endingRow?: RowElement, isSelected: boolean = true) {
 				const rowId = this.identify(startingRow.dgridData);
 
 				// Check whether we're allowed to select the given row before proceeding.
@@ -255,6 +270,32 @@ function createSelectionMixin<T, O, U, P>(): ComposeMixinDescriptor<any, any, an
 						}
 						else {
 							this._selectionEventQueues.deselect.push(startingRow);
+						}
+					}
+
+					if (endingRow) {
+						const position = startingRow.compareDocumentPosition(endingRow);
+						let direction: string;
+
+						if (position === Node.DOCUMENT_POSITION_FOLLOWING) {
+							direction = 'next';
+						}
+						else if (position === Node.DOCUMENT_POSITION_PRECEDING) {
+							direction = 'previous';
+						}
+						else {
+							// TODO: error? warning?
+							return;
+						}
+
+						while (startingRow !== endingRow) {
+							startingRow = (<any> startingRow)[direction + 'Sibling'];
+
+							if (!startingRow) {
+								break;
+							}
+
+							this._select(startingRow, null, isSelected);
 						}
 					}
 				}
