@@ -302,7 +302,7 @@ class Scaffolding<T> {
 			viewsByPath = this.viewsByPath,
 			registeredViews = this.registeredViews,
 			staleViews = this.staleViews,
-			{ info: rootInfo, children } = this._childrenPath(rootPath);
+			{ children } = this._childrenPath(rootPath);
 
 		let args: any[] = [rootContext];
 		if (prefill) {

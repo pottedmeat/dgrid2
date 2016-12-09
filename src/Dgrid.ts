@@ -5,13 +5,11 @@ import Renderer from './interfaces/Renderer';
 import View from './interfaces/View';
 import on from 'dojo-core/on';
 import createEvented from 'dojo-compose/mixins/createEvented';
-import Evented from 'dojo-core/Evented';
 import has, { add as addHas } from 'dojo-has/has';
 import { CrudOptions, Store } from 'dojo-stores/store/createStore';
 import { ObservableStoreMixin } from 'dojo-stores/store/mixins/createObservableStoreMixin';
-import { createSort } from 'dojo-stores/query/Sort';
 import { QueryMixin} from 'dojo-stores/store/mixins/createQueryMixin';
-import { UpdateResults } from 'dojo-stores/storage/createInMemoryStorage';
+import { UpdateResults } from 'dojo-stores/store/createStore';
 import { Subscription } from 'rxjs/Rx';
 
 export interface Column {
@@ -77,11 +75,6 @@ function getScrollbarSize(element: HTMLElement, dimension: string) {
 	const client: number = (<any> element)['client' + dimension];
 	let size: number = (offset - client);
 	cleanupTestElement(element);
-	if (false && has('ie')) {
-		// Avoid issues with certain widgets inside in IE7, and
-		// ColumnSet scroll issues with all supported IE versions
-		size++;
-	}
 	return size;
 }
 addHas('dom-scrollbar-width', function () {
@@ -276,8 +269,6 @@ export const createDgrid = compose(<Dgrid> {
 		else {
 			domNode.appendChild(view.domNode);
 		}
-		const state = this.state;
-
 		on(this, 'dgrid-sort', (event: SortEvent) => {
 			const target = event.target;
 			const field = (target.field || target.columnId);

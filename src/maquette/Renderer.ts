@@ -25,7 +25,7 @@ function sortListener(this: Dgrid, event: MouseEvent) {
 	while (target.parentNode) {
 		if (target.tagName === 'TH') {
 			if (target.sortable) {
-				emit(this, {
+				emit(<any> this, {
 					type: 'dgrid-sort',
 					grid: this,
 					event: event,
