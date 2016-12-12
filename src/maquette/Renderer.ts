@@ -3,14 +3,9 @@ import { createProjector, Projector, h, VNode } from 'maquette';
 import Dgrid, { Column, SortTarget } from '../Dgrid';
 import { emit } from 'dojo-core/on';
 
-let viewForGridChildren: {
-	header: VNode,
-	body: VNode,
-	id: string;
-	renderMaquette: () => VNode
-} = {
-	header: null,
-	body: null,
+let viewForGridChildren = {
+	header: <VNode> null,
+	body: <VNode> null,
 	id: '',
 	renderMaquette: function() {
 		return h('div.dgrid-maquette.dgrid.dgrid-grid', {
