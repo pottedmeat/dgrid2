@@ -1,6 +1,6 @@
 import createProjector, { Projector } from 'dojo-widgets/createProjector';
 import d from 'dojo-widgets/d';
-import createDgrid, { DgridState } from './createDgrid';
+import createDgrid from './createDgrid';
 
 const createApp = createProjector.mixin({
 	mixin: {

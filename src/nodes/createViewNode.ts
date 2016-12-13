@@ -10,12 +10,5 @@ export default createDgridNode.override({
 				role: 'grid'
 			};
 		}
-	],
-	getChildrenNodes: function() {
-		// By default, scaffolding can insert children as specified
-		// Or I can call another function that returns them:
-		//	keyed would be best, but the order would be important too
-
-		// I wouldn't want to assign things directly to children
-	}
+	]
 });
