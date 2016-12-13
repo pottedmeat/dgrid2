@@ -2,8 +2,7 @@ import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
 
 export default createWidgetBase.override({
-	tagName: 'div',
-	classes: ['dgrid-header', 'dgrid-header-row'],
+	classes: [ 'dgrid-row' ],
 	nodeAttributes: [
 		function () {
 			return {
@@ -12,6 +11,6 @@ export default createWidgetBase.override({
 		}
 	],
 	getChildrenNodes: function () {
-		return [ w('dgrid-header-view', {}) ];
+		return [ w('dgrid-row-view', {}) ];
 	}
 });

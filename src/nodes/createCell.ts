@@ -2,16 +2,16 @@ import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
 
 export default createWidgetBase.override({
-	tagName: 'div',
-	classes: ['dgrid-header', 'dgrid-header-row'],
+	tagName: 'td',
+	classes: ['dgrid-cell'],
 	nodeAttributes: [
 		function () {
 			return {
-				role: 'row'
+				role: 'gridcell'
 			};
 		}
 	],
 	getChildrenNodes: function () {
-		return [ w('dgrid-header-view', {}) ];
+		return [ w('dgrid-cell-view', {}) ];
 	}
 });

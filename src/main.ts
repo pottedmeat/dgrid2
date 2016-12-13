@@ -1,12 +1,12 @@
 import createProjector, { Projector } from 'dojo-widgets/createProjector';
-import d from 'dojo-widgets/d';
+import { w } from 'dojo-widgets/d';
 import createDgrid from './createDgrid';
 
 const createApp = createProjector.mixin({
 	mixin: {
 		getChildrenNodes: function(this: Projector): any {
 			return [
-				d(createDgrid, <any> { id: 'grid', state: { id: 'grid' } })
+				w(createDgrid, <any> { id: 'grid', state: { id: 'grid' } })
 			];
 		}
 	}

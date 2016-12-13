@@ -1,10 +1,10 @@
-import createDgridNode from './createDgridNode';
-import d from 'dojo-widgets/d';
+import createWidgetBase from 'dojo-widgets/createWidgetBase';
+import { w, v } from 'dojo-widgets/d';
 
-export default createDgridNode.override({
+export default createWidgetBase.override({
 	tagName: 'div',
 	classes: ['dgrid-scroller'],
 	getChildrenNodes: function () {
-		return [ d('div.dgrid-content', {}, this.getChildDescendants()) ];
+		return [ v('div.dgrid-content', {}, [ w('dgrid-row', {}) ] ) ];
 	}
 });
