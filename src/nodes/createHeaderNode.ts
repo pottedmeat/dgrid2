@@ -12,6 +12,6 @@ export default createWidgetBase.override({
 		}
 	],
 	getChildrenNodes: function () {
-		return [ w('dgrid-header-view', {}) ];
+		return [ w('dgrid-header-view', { state: this.state }) ];
 	}
 });

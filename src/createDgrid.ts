@@ -21,8 +21,22 @@ registry.define('dgrid-row-view', createRowView);
 registry.define('dgrid-cell', createCell);
 registry.define('dgrid-cell-view', createCellView);
 
-export interface DgridState extends WidgetState {
+export interface Column {
+	id: string;
+	label: string;
+	field?: string;
+	sortable?: boolean;
 }
+
+export interface ColumnsState {
+	columns: Column[];
+}
+
+export interface ColumnState {
+	column: Column;
+}
+
+export interface DgridState extends WidgetState, ColumnsState { }
 
 interface DgridOptions extends WidgetOptions<DgridState> { }
 
@@ -39,7 +53,7 @@ const createDgrid = createWidgetBase.override({
 		}
 	],
 	getChildrenNodes: function() {
-		return [w('dgrid-header', {}), w('dgrid-body', {})];
+		return [w('dgrid-header', { state: this.state }), w('dgrid-body', { state: this.state })];
 	}
 });
 
