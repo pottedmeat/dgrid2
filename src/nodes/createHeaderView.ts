@@ -19,8 +19,9 @@ export default createWidgetBase.override({
 		} = this.state;
 
 		return [ v('tr', {},
-			columns.map((column) => {
+			columns.map(column => {
 				return w('dgrid-header-cell', {
+					id: column.id,
 					state: {
 						column: column
 					}

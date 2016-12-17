@@ -11,6 +11,6 @@ export default createWidgetBase.override({
 		}
 	],
 	getChildrenNodes: function () {
-		return [ w('dgrid-row-view', {}) ];
+		return [ w('dgrid-row-view', { state: this.state }) ];
 	}
 });

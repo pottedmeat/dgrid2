@@ -1,4 +1,6 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
+import { Widget, WidgetState } from 'dojo-widgets/interfaces';
+import { ColumnsState } from '../createDgrid';
 import { v, w } from 'dojo-widgets/d';
 
 export default createWidgetBase.override({
@@ -11,9 +13,22 @@ export default createWidgetBase.override({
 			};
 		}
 	],
-	getChildrenNodes: function () {
+	getChildrenNodes: function (this: Widget<WidgetState & ColumnsState>) {
+		const {
+			columns,
+			item
+		} = this.state;
+
 		return [ v('tr', {},
-			[ w('dgrid-cell', {}) ]
+			columns.map(column => {
+				return w('dgrid-cell', {
+					id: column.id,
+					state: {
+						column: column,
+						item: item
+					}
+				});
+			})
 		) ];
 	}
 });

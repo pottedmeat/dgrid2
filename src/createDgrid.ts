@@ -1,21 +1,21 @@
 import { Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import createHeaderNode from './nodes/createHeaderNode';
+import createHeader from './nodes/createHeader';
 import createHeaderView from './nodes/createHeaderView';
 import createHeaderCell from './nodes/createHeaderCell';
 import createHeaderCellView from './nodes/createHeaderCellView';
-import createBodyNode from './nodes/createBodyNode';
+import createBody from './nodes/createBody';
 import createRow from './nodes/createRow';
 import createRowView from './nodes/createRowView';
 import createCell from './nodes/createCell';
 import createCellView from './nodes/createCellView';
 import { w, registry } from 'dojo-widgets/d';
 
-registry.define('dgrid-header', createHeaderNode);
+registry.define('dgrid-header', createHeader);
 registry.define('dgrid-header-view', createHeaderView);
 registry.define('dgrid-header-cell', createHeaderCell);
 registry.define('dgrid-header-cell-view', createHeaderCellView);
-registry.define('dgrid-body', createBodyNode);
+registry.define('dgrid-body', createBody);
 registry.define('dgrid-row', createRow);
 registry.define('dgrid-row-view', createRowView);
 registry.define('dgrid-cell', createCell);
