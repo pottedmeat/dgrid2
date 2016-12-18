@@ -36,7 +36,7 @@ function createData(count: number): Person[] {
 	return data;
 }
 
-const data = createData(5000);
+const data = createData(50);
 const store = createSubcollectionStore.mixin(createQueryMixin()).mixin(createObservableStoreMixin())(({
 	data: data,
 	idProperty: 'uuid'
