@@ -10,6 +10,7 @@ import createRowView from './nodes/createRowView';
 import createCell from './nodes/createCell';
 import createCellView from './nodes/createCellView';
 import { w, registry } from 'dojo-widgets/d';
+import { mixin } from 'dojo-core/lang';
 
 registry.define('dgrid-header', createHeader);
 registry.define('dgrid-header-view', createHeaderView);
@@ -42,19 +43,29 @@ interface DgridOptions extends WidgetOptions<DgridState> { }
 
 export type Dgrid = Widget<DgridState>;
 
-const createDgrid = createWidgetBase.override({
-	tagName: 'div',
-	classes: ['dgrid-widgets', 'dgrid', 'dgrid-grid'],
-	nodeAttributes: [
-		function () {
-			return {
-				role: 'grid'
-			};
+const createDgrid = createWidgetBase
+	.override({
+		tagName: 'div',
+		classes: ['dgrid-widgets', 'dgrid', 'dgrid-grid'],
+		nodeAttributes: [
+			function () {
+				return {
+					role: 'grid'
+				};
+			}
+		],
+		getChildrenNodes: function() {
+			return [
+				w('dgrid-header', {
+					parent: this,
+					state: mixin({}, this.state)
+				}),
+				w('dgrid-body', {
+					parent: this,
+					state: mixin({}, this.state)
+				})
+			];
 		}
-	],
-	getChildrenNodes: function() {
-		return [w('dgrid-header', { state: this.state }), w('dgrid-body', { state: this.state })];
-	}
-});
+	});
 
 export default createDgrid;
