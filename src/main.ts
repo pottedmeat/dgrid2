@@ -1,11 +1,11 @@
 import createProjector, { Projector } from 'dojo-widgets/createProjector';
 import { w } from 'dojo-widgets/d';
-import createDgrid from './createDgrid';
+import createDgrid, { ColumnState } from './createDgrid';
 import createCellView from './nodes/createCellView';
 import createObservableStoreMixin from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import createQueryMixin from 'dojo-stores/store/mixins/createQueryMixin';
 import createSubcollectionStore from 'dojo-stores/store/createSubcollectionStore';
-import { Widget } from 'dojo-widgets/interfaces';
+import { Widget, WidgetState } from 'dojo-widgets/interfaces';
 
 interface Person {
 	age: number;
