@@ -1,9 +1,11 @@
 import createProjector, { Projector } from 'dojo-widgets/createProjector';
 import { w } from 'dojo-widgets/d';
 import createDgrid from './createDgrid';
+import createCellView from './nodes/createCellView';
 import createObservableStoreMixin from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import createQueryMixin from 'dojo-stores/store/mixins/createQueryMixin';
 import createSubcollectionStore from 'dojo-stores/store/createSubcollectionStore';
+import Widget from 'dojo-widgets/interfaces';
 
 interface Person {
 	age: number;
@@ -42,11 +44,36 @@ const store = createSubcollectionStore.mixin(createQueryMixin()).mixin(createObs
 	idProperty: 'uuid'
 }));
 
+const createCustomDgrid = createDgrid.mixin({
+	initialize(instance) {
+		instance.registry.define('dgrid-cell-view', createCellView.after('getChildrenNodes', function (this: Widget<WidgetState & ColumnState>, children: string[]) {
+			const {
+				column
+			} = this.state;
+
+			if (column.id === 'age') {
+				children.push(' years old');
+			}
+			else if (column.id === 'gender') {
+				children.unshift('is a ');
+			}
+			else if (column.id === 'location') {
+				children.unshift('located at ');
+			}
+			else if (column.id === 'delete') {
+				children.push('🗑');
+			}
+
+			return children;
+		}));
+	}
+});
+
 const createApp = createProjector.mixin({
 	mixin: {
 		getChildrenNodes: function(this: Projector): any {
 			return [
-				w(createDgrid, <any> {
+				w(createCustomDgrid, <any> {
 					id: 'grid',
 					state: {
 						id: 'grid',
