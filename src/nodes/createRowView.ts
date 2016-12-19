@@ -2,7 +2,7 @@ import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { Widget, WidgetState } from 'dojo-widgets/interfaces';
 import { ColumnsState } from '../createDgrid';
 import { v, w } from 'dojo-widgets/d';
-import { mixin } from 'dojo-core/lang';
+import { mixin } from '../util';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 
 export default createWidgetBase
@@ -25,7 +25,7 @@ export default createWidgetBase
 
 			return [ v('tr', {},
 				columns.map(column => {
-					return w('dgrid-cell', {
+					return w('dgrid-cell', <any> {
 						id: column.id,
 						parent: this,
 						state: mixin({

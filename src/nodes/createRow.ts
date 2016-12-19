@@ -1,6 +1,6 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
-import { mixin } from 'dojo-core/lang';
+import { mixin } from '../util';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 
 export default createWidgetBase
@@ -16,7 +16,7 @@ export default createWidgetBase
 		],
 		getChildrenNodes: function () {
 			return [
-				w('dgrid-row-view', {
+				w('dgrid-row-view', <any> {
 					parent: this,
 					state: mixin({}, this.state)
 				})

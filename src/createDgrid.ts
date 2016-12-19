@@ -10,7 +10,7 @@ import createRowView from './nodes/createRowView';
 import createCell from './nodes/createCell';
 import createCellView from './nodes/createCellView';
 import { w, registry } from 'dojo-widgets/d';
-import { mixin } from 'dojo-core/lang';
+import { mixin } from './util';
 
 registry.define('dgrid-header', createHeader);
 registry.define('dgrid-header-view', createHeaderView);
@@ -56,11 +56,11 @@ const createDgrid = createWidgetBase
 		],
 		getChildrenNodes: function() {
 			return [
-				w('dgrid-header', {
+				w('dgrid-header', <any> {
 					parent: this,
 					state: mixin({}, this.state)
 				}),
-				w('dgrid-body', {
+				w('dgrid-body', <any> {
 					parent: this,
 					state: mixin({}, this.state)
 				})

@@ -2,7 +2,7 @@ import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { Widget} from 'dojo-widgets/interfaces';
 import { DgridState} from '../createDgrid';
 import { w, v } from 'dojo-widgets/d';
-import { mixin } from 'dojo-core/lang';
+import { mixin } from '../util';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 
 interface DataState {
@@ -28,7 +28,7 @@ export default createWidgetBase
 
 			return [ v('div.dgrid-content', {},
 				data.map(item => {
-					return w('dgrid-row', {
+					return w('dgrid-row', <any> {
 						id: collection.identify(item)[0],
 						parent: this,
 						state: mixin({
