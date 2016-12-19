@@ -6,7 +6,7 @@ import { mixin } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 
 export default createWidgetBase
-    .mixin(createDelegatingFactoryRegistryMixin)
+	.mixin(createDelegatingFactoryRegistryMixin)
 	.override({
 		tagName: 'table',
 		classes: ['dgrid-row-table'],

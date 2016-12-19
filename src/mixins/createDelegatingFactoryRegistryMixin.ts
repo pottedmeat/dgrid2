@@ -4,40 +4,40 @@ import WeakMap from 'dojo-shim/WeakMap';
 import { registry } from 'dojo-widgets/d';
 import DelegatingFactoryRegistry from '../widgets/DelegatingFactoryRegistry';
 import {
-    Widget,
-    WidgetOptions,
-    WidgetState,
-    FactoryRegistryInterface
+	Widget,
+	WidgetOptions,
+	WidgetState,
+	FactoryRegistryInterface
 } from 'dojo-widgets/interfaces';
 
 const factoryRegistryWeakMap = new WeakMap<Widget<WidgetState>, FactoryRegistryInterface>();
 
 export interface DelegatingFactoryRegistryMixinState extends WidgetState {
-    factoryRegistry?: FactoryRegistryInterface;
+	factoryRegistry?: FactoryRegistryInterface;
 }
 
 export interface DelegatingFactoryRegistryMixinOptions extends WidgetOptions<DelegatingFactoryRegistryMixinState> {
-    parent?: Widget<WidgetOptions<WidgetState>>;
+	parent?: Widget<WidgetOptions<WidgetState>>;
 }
 
 export interface DelegatingFactoryRegistryMixin {
-    readonly registry: FactoryRegistryInterface;
+	readonly registry: FactoryRegistryInterface;
 }
 
 export default createStateful
-    .mixin<DelegatingFactoryRegistryMixin, DelegatingFactoryRegistryMixinOptions>({
-        mixin: {
-            get registry(this: Widget<WidgetState>): FactoryRegistry {
-                return <any> factoryRegistryWeakMap.get(this);
-            }
-        },
-        initialize(instance: Widget<DelegatingFactoryRegistryMixinState>,
-            { parent }: DelegatingFactoryRegistryMixinOptions = {}
-        ) {
-            let factoryRegistry: FactoryRegistryInterface = registry;
-            if (parent && parent.registry) {
-                factoryRegistry = parent.registry;
-            }
-            factoryRegistryWeakMap.set(instance, factoryRegistry);
-        }
-    });
+	.mixin<DelegatingFactoryRegistryMixin, DelegatingFactoryRegistryMixinOptions>({
+		mixin: {
+			get registry(this: Widget<WidgetState>): FactoryRegistry {
+				return <any> factoryRegistryWeakMap.get(this);
+			}
+		},
+		initialize(instance: Widget<DelegatingFactoryRegistryMixinState>,
+			{ parent }: DelegatingFactoryRegistryMixinOptions = {}
+		) {
+			let factoryRegistry: FactoryRegistryInterface = registry;
+			if (parent && parent.registry) {
+				factoryRegistry = parent.registry;
+			}
+			factoryRegistryWeakMap.set(instance, new DelegatingFactoryRegistry(factoryRegistry));
+		}
+	});
