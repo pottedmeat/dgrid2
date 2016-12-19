@@ -2,7 +2,6 @@ import FactoryRegistry from 'dojo-widgets/FactoryRegistry';
 import Promise from 'dojo-shim/Promise';
 import {
 	WidgetFactory,
-	FactoryRegistryItem,
 	FactoryRegistryInterface
 } from 'dojo-widgets/interfaces';
 
