@@ -28,6 +28,6 @@ export default class DelegatingFactoryRegistry extends FactoryRegistry {
 			}
 			return null;
 		}
-		super.get(factoryLabel);
+		return super.get(factoryLabel);
 	}
 }
