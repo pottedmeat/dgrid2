@@ -6,6 +6,11 @@ import { w } from 'dojo-widgets/d';
 export default createWidgetBase.override({
 	tagName: 'th',
 	classes: ['dgrid-cell'],
+	listeners: {
+		onclick: function (ev: MouseEvent) {
+			console.log('cell', this, arguments);
+		}
+	},
 	nodeAttributes: [
 		function () {
 			return {

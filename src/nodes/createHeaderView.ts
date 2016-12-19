@@ -6,6 +6,11 @@ import { v, w } from 'dojo-widgets/d';
 export default createWidgetBase.override({
 	tagName: 'table',
 	classes: ['dgrid-row-table'],
+	listeners: {
+		onclick: function (ev: MouseEvent) {
+			console.log('header view', this, arguments);
+		}
+	},
 	nodeAttributes: [
 		function () {
 			return {
