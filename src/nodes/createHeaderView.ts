@@ -1,16 +1,21 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { Widget, WidgetState } from 'dojo-widgets/interfaces';
-import { ColumnsState } from '../createDgrid';
+import { DgridNodeOptions, DgridNode} from '../createDgrid';
 import { v, w } from 'dojo-widgets/d';
-import { mixin } from '../util';
+import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
+import { HeaderCellOptions } from './createHeaderCell';
+import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
+
+export type HeaderViewOptions = DgridNodeOptions<null, null>;
+
+export type HeaderView = DgridNode<null, null>;
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.override({
+	.override(<Partial<HeaderView>> {
 		tagName: 'table',
 		classes: ['dgrid-row-table'],
-		listeners: {
+		listeners: <VNodeListeners> {
 			onclick: function (ev: MouseEvent) {
 				console.log('header view', this, arguments);
 			}
@@ -22,19 +27,22 @@ export default createWidgetBase
 				};
 			}
 		],
-		getChildrenNodes: function (this: Widget<WidgetState & ColumnsState>) {
+		applyChangedProperties: function() {
+			// no new state
+		},
+		getChildrenNodes: function (this: HeaderView) {
 			const {
 				columns
-			} = this.state;
+			} = this.properties;
 
 			return [ v('tr', {},
 				columns.map(column => {
-					return w('dgrid-header-cell', <any> {
+					return w('dgrid-header-cell', <HeaderCellOptions> {
 						id: column.id,
 						parent: this,
-						state: mixin({
+						properties: create(this.properties, {
 							column: column
-						}, this.state)
+						})
 					});
 				})
 			) ];

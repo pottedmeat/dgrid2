@@ -1,4 +1,4 @@
-import { Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
+import { Widget, WidgetOptions, WidgetState, WidgetProperties } from 'dojo-widgets/interfaces';
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import createHeader from './nodes/createHeader';
 import createHeaderView from './nodes/createHeaderView';
@@ -10,7 +10,9 @@ import createRowView from './nodes/createRowView';
 import createCell from './nodes/createCell';
 import createCellView from './nodes/createCellView';
 import { w, registry } from 'dojo-widgets/d';
-import { mixin } from './util';
+import { create } from 'dojo-core/lang';
+import { HeaderOptions } from './nodes/createHeader';
+import { BodyOptions } from './nodes/createBody';
 
 registry.define('dgrid-header', createHeader);
 registry.define('dgrid-header-view', createHeaderView);
@@ -29,22 +31,42 @@ export interface Column {
 	sortable?: boolean;
 }
 
-export interface ColumnsState {
+export interface HasColumns {
 	columns: Column[];
 }
 
-export interface ColumnState {
+export interface HasColumn {
 	column: Column;
 }
 
-export interface DgridState extends WidgetState, ColumnsState { }
+export interface HasCollection {
+	collection?: any;
+}
 
-interface DgridOptions extends WidgetOptions<DgridState> { }
+export interface HasItem {
+	item: any;
+}
 
-export type Dgrid = Widget<DgridState>;
+export interface HasItemIdentifier {
+	itemIdentifier: string;
+}
+
+export interface HasParent {
+	parent: Widget<WidgetState, WidgetProperties>;
+}
+
+export interface DgridState extends WidgetState, HasColumns, HasCollection { }
+
+export interface DgridProperties extends WidgetProperties, HasColumns, HasCollection {}
+
+export interface DgridOptions extends WidgetOptions<DgridState, DgridProperties> { }
+
+export type DgridNodeOptions<S, P> = WidgetOptions<WidgetState & HasParent & S, HasColumns & HasCollection & P>;
+
+export type DgridNode<S, P> = Widget<WidgetState & S, HasColumns & HasCollection & P>;
 
 const createDgrid = createWidgetBase
-	.override({
+	.override(<DgridOptions> {
 		tagName: 'div',
 		classes: ['dgrid-widgets', 'dgrid', 'dgrid-grid'],
 		nodeAttributes: [
@@ -56,13 +78,13 @@ const createDgrid = createWidgetBase
 		],
 		getChildrenNodes: function() {
 			return [
-				w('dgrid-header', <any> {
+				w('dgrid-header', <HeaderOptions> {
 					parent: this,
-					state: mixin({}, this.state)
+					properties: create(this.properties, null)
 				}),
-				w('dgrid-body', <any> {
+				w('dgrid-body', <BodyOptions> {
 					parent: this,
-					state: mixin({}, this.state)
+					properties: create(this.properties, null)
 				})
 			];
 		}

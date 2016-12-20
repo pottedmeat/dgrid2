@@ -1,11 +1,11 @@
 import createProjector, { Projector } from 'dojo-widgets/createProjector';
 import { w } from 'dojo-widgets/d';
-import createDgrid, { ColumnState } from './createDgrid';
+import createDgrid from './createDgrid';
 import createCellView from './nodes/createCellView';
 import createObservableStoreMixin from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import createQueryMixin from 'dojo-stores/store/mixins/createQueryMixin';
 import createSubcollectionStore from 'dojo-stores/store/createSubcollectionStore';
-import { Widget, WidgetState } from 'dojo-widgets/interfaces';
+import { CellView } from './nodes/createCellView';
 
 interface Person {
 	age: number;
@@ -38,7 +38,7 @@ function createData(count: number): Person[] {
 	return data;
 }
 
-const data = createData(50);
+const data = createData(5000);
 const store = createSubcollectionStore.mixin(createQueryMixin()).mixin(createObservableStoreMixin())(({
 	data: data,
 	idProperty: 'uuid'
@@ -46,10 +46,10 @@ const store = createSubcollectionStore.mixin(createQueryMixin()).mixin(createObs
 
 const createCustomDgrid = createDgrid.mixin({
 	initialize(instance) {
-		instance.registry.define('dgrid-cell-view', createCellView.after('getChildrenNodes', function (this: Widget<WidgetState & ColumnState>, children: string[]) {
+		instance.registry.define('dgrid-cell-view', createCellView.after('getChildrenNodes', function (this: CellView, children: string[]) {
 			const {
 				column
-			} = this.state;
+			} = this.properties;
 
 			if (column.id === 'age') {
 				children.push(' years old');
@@ -75,8 +75,7 @@ const createApp = createProjector.mixin({
 			return [
 				w(createCustomDgrid, <any> {
 					id: 'grid',
-					state: {
-						id: 'grid',
+					properties: {
 						collection: store,
 						columns: [
 							{

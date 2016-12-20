@@ -1,14 +1,21 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
-import { mixin } from '../util';
+import { create } from 'dojo-core/lang';
+import { DgridNodeOptions, DgridNode } from '../createDgrid';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
+import { HeaderViewOptions } from './createHeaderView';
+import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
+
+export type HeaderOptions = DgridNodeOptions<null, null>;
+
+export type Header = DgridNode<null, null>;
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.override({
+	.override(<Partial<Header>> {
 		tagName: 'div',
 		classes: ['dgrid-header', 'dgrid-header-row'],
-		listeners: {
+		listeners: <VNodeListeners> {
 			onclick: function(ev: MouseEvent) {
 				console.log('header', this, arguments);
 			}
@@ -20,11 +27,14 @@ export default createWidgetBase
 				};
 			}
 		],
-		getChildrenNodes: function () {
+		applyChangedProperties: function() {
+			// no new state
+		},
+		getChildrenNodes: function (this: Header) {
 			return [
-				w('dgrid-header-view', <any> {
+				w('dgrid-header-view', <HeaderViewOptions> {
 					parent: this,
-					state: mixin({}, this.state)
+					properties: create(this.properties, null)
 				})
 			];
 		}

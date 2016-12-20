@@ -1,11 +1,17 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
-import { mixin } from '../util';
+import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
+import { DgridNodeOptions, HasItemIdentifier, DgridNode, HasItem } from '../createDgrid';
+import { RowViewOptions } from './createRowView';
+
+export type RowOptions = DgridNodeOptions<null, HasItemIdentifier & HasItem>;
+
+export type Row = DgridNode<HasItemIdentifier, HasItemIdentifier & HasItem>;
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.override({
+	.override(<Partial<Row>> {
 		classes: [ 'dgrid-row' ],
 		nodeAttributes: [
 			function () {
@@ -14,11 +20,14 @@ export default createWidgetBase
 				};
 			}
 		],
-		getChildrenNodes: function () {
+		applyChangedProperties: function(previousProperties: HasItemIdentifier, currentProperties: HasItemIdentifier) {
+			this.state.itemIdentifier = currentProperties.itemIdentifier;
+		},
+		getChildrenNodes: function (this: Row) {
 			return [
-				w('dgrid-row-view', <any> {
+				w('dgrid-row-view', <RowViewOptions> {
 					parent: this,
-					state: mixin({}, this.state)
+					properties: create(this.properties, null)
 				})
 			];
 		}

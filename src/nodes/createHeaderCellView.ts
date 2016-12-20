@@ -1,18 +1,25 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { Widget, WidgetState } from 'dojo-widgets/interfaces';
-import { ColumnState } from '../createDgrid';
+import { HasColumn, DgridNodeOptions, DgridNode } from '../createDgrid';
+import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
 
-export default createWidgetBase.override({
+export type HeaderCellViewOptions = DgridNodeOptions<null, HasColumn>;
+
+export type HeaderCellView = DgridNode<null, HasColumn>;
+
+export default createWidgetBase.override(<Partial<HeaderCellView>> {
 	tagName: 'span',
-	listeners: {
+	listeners: <VNodeListeners> {
 		onclick: function (ev: MouseEvent) {
 			console.log('cell view', this, arguments);
 		}
 	},
-	getChildrenNodes: function (this: Widget<WidgetState & ColumnState>) {
+	applyChangedProperties: function() {
+		// no new state
+	},
+	getChildrenNodes: function (this: HeaderCellView) {
 		const {
 			column
-		} = this.state;
+		} = this.properties;
 
 		return [ column.label ];
 	}

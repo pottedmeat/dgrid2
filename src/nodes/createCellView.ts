@@ -1,13 +1,19 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { Widget, WidgetState } from 'dojo-widgets/interfaces';
-import { ColumnState } from '../createDgrid';
+import { HasColumn, DgridNodeOptions, HasItemIdentifier, DgridNode, HasItem } from '../createDgrid';
 
-export default createWidgetBase.override({
-	getChildrenNodes: function (this: Widget<WidgetState & ColumnState>) {
+export type CellViewOptions = DgridNodeOptions<null, HasItemIdentifier & HasItem & HasColumn>;
+
+export type CellView = DgridNode<null, HasItemIdentifier & HasItem & HasColumn>;
+
+export default createWidgetBase.override(<Partial<CellView>> {
+	applyChangedProperties: function() {
+		// no new state
+	},
+	getChildrenNodes: function (this: CellView) {
 		const {
-			column,
-			item
-		} = this.state;
+			item,
+			column
+		} = this.properties;
 
 		const value = item[column.field];
 		return value ? [ '' + item[column.field] ] : [];

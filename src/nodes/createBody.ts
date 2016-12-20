@@ -1,23 +1,28 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { Widget} from 'dojo-widgets/interfaces';
-import { DgridState} from '../createDgrid';
+import { DgridNodeOptions, DgridNode} from '../createDgrid';
 import { w, v } from 'dojo-widgets/d';
-import { mixin } from '../util';
+import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
+import { RowOptions } from './createRow';
 
-interface DataState {
+interface HasData {
 	data: any[];
-}
+};
+
+export type BodyOptions = DgridNodeOptions<null, null>;
+
+export type Body = DgridNode<HasData, null>;
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.override({
+	.override(<Partial<Body>> {
 		tagName: 'div',
 		classes: ['dgrid-scroller'],
-		getChildrenNodes: function (this: Widget<DgridState & DataState>) {
+		getChildrenNodes: function (this: Body) {
 			const {
-				columns,
-				collection,
+				collection
+			} = this.properties;
+			const {
 				data = []
 			} = this.state;
 
@@ -28,13 +33,15 @@ export default createWidgetBase
 
 			return [ v('div.dgrid-content', {},
 				data.map(item => {
-					return w('dgrid-row', <any> {
-						id: collection.identify(item)[0],
+					const id = collection.identify(item)[0];
+
+					return w('dgrid-row', <RowOptions> {
+						id,
 						parent: this,
-						state: mixin({
-							columns: columns,
-							item: item
-						}, this.state)
+						properties: create(this.properties, {
+							itemIdentifier: id,
+							item
+						})
 					});
 				})
 			) ];

@@ -1,13 +1,17 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { Widget, WidgetState } from 'dojo-widgets/interfaces';
-import { ColumnsState } from '../createDgrid';
+import { DgridNodeOptions, HasItemIdentifier, DgridNode, HasItem } from '../createDgrid';
 import { v, w } from 'dojo-widgets/d';
-import { mixin } from '../util';
+import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
+import { CellOptions } from './createCell';
+
+export type RowViewOptions = DgridNodeOptions<null, HasItemIdentifier & HasItem>;
+
+export type RowView = DgridNode<null, HasItemIdentifier & HasItem>;
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.override({
+	.override(<Partial<RowView>> {
 		tagName: 'table',
 		classes: ['dgrid-row-table'],
 		nodeAttributes: [
@@ -17,23 +21,26 @@ export default createWidgetBase
 				};
 			}
 		],
-		getChildrenNodes: function (this: Widget<WidgetState & ColumnsState>) {
+		applyChangedProperties: function() {
+			// no new state
+		},
+		getChildrenNodes: function (this: RowView) {
 			const {
-				columns,
-				item
-			} = this.state;
+				columns
+			} = this.properties;
 
-			return [ v('tr', {},
-				columns.map(column => {
-					return w('dgrid-cell', <any> {
-						id: column.id,
-						parent: this,
-						state: mixin({
-							column: column,
-							item: item
-						}, this.state)
-					});
-				})
-			) ];
+			return [
+				v('tr', {},
+					columns.map(column => {
+						return w('dgrid-cell', <CellOptions> {
+							id: column.id,
+							parent: this,
+							properties: create(this.properties, {
+								column: column
+							})
+						});
+					})
+				)
+			];
 		}
 	});

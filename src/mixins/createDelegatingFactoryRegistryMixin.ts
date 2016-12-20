@@ -7,17 +7,17 @@ import {
 	Widget,
 	WidgetOptions,
 	WidgetState,
-	FactoryRegistryInterface
+	FactoryRegistryInterface, WidgetProperties
 } from 'dojo-widgets/interfaces';
 
-const factoryRegistryWeakMap = new WeakMap<Widget<WidgetState>, FactoryRegistryInterface>();
+const factoryRegistryWeakMap = new WeakMap<Widget<WidgetState, WidgetProperties>, FactoryRegistryInterface>();
 
 export interface DelegatingFactoryRegistryMixinState extends WidgetState {
 	factoryRegistry?: FactoryRegistryInterface;
 }
 
-export interface DelegatingFactoryRegistryMixinOptions extends WidgetOptions<DelegatingFactoryRegistryMixinState> {
-	parent?: Widget<WidgetOptions<WidgetState>>;
+export interface DelegatingFactoryRegistryMixinOptions extends WidgetOptions<DelegatingFactoryRegistryMixinState, WidgetProperties> {
+	parent?: Widget<WidgetState, WidgetProperties>;
 }
 
 export interface DelegatingFactoryRegistryMixin {
@@ -27,11 +27,11 @@ export interface DelegatingFactoryRegistryMixin {
 export default createStateful
 	.mixin<DelegatingFactoryRegistryMixin, DelegatingFactoryRegistryMixinOptions>({
 		mixin: {
-			get registry(this: Widget<WidgetState>): FactoryRegistry {
+			get registry(this: Widget<WidgetState, WidgetProperties>): FactoryRegistry {
 				return <any> factoryRegistryWeakMap.get(this);
 			}
 		},
-		initialize(instance: Widget<DelegatingFactoryRegistryMixinState>,
+		initialize(instance: Widget<DelegatingFactoryRegistryMixinState, WidgetProperties>,
 			{ parent }: DelegatingFactoryRegistryMixinOptions = {}
 		) {
 			let factoryRegistry: FactoryRegistryInterface = registry;
