@@ -22,8 +22,13 @@ export default createWidgetBase
 		},
 		nodeAttributes: [
 			function () {
+				const {
+					scrollbarSize: { width: scrollbarWidth }
+				} = this.properties;
+
 				return {
-					role: 'row'
+					role: 'row',
+					style: 'right:' + scrollbarWidth + 'px'
 				};
 			}
 		],

@@ -37,7 +37,7 @@ function createData(count: number): Person[] {
 }
 
 console.time('createData');
-const data = createData(5000);
+const data = createData(100);
 console.timeEnd('createData');
 console.time('createStore');
 const store = createSubcollectionStore.mixin(createQueryMixin()).mixin(createObservableStoreMixin())(({

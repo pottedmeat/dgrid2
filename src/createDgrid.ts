@@ -5,6 +5,7 @@ import createHeader from './nodes/createHeader';
 import createHeaderView from './nodes/createHeaderView';
 import createHeaderCell from './nodes/createHeaderCell';
 import createHeaderCellView from './nodes/createHeaderCellView';
+import createHeaderScroll from './nodes/createHeaderScroll';
 import createBody from './nodes/createBody';
 import createRow from './nodes/createRow';
 import createRowView from './nodes/createRowView';
@@ -14,11 +15,14 @@ import { w, registry } from 'dojo-widgets/d';
 import { create } from 'dojo-core/lang';
 import { HeaderOptions } from './nodes/createHeader';
 import { BodyOptions } from './nodes/createBody';
+import { getScrollbarSize } from './util';
+import { HeaderScrollOptions } from './nodes/createHeaderScroll';
 
 registry.define('dgrid-header', createHeader);
 registry.define('dgrid-header-view', createHeaderView);
 registry.define('dgrid-header-cell', createHeaderCell);
 registry.define('dgrid-header-cell-view', createHeaderCellView);
+registry.define('dgrid-header-scroll', createHeaderScroll);
 registry.define('dgrid-body', createBody);
 registry.define('dgrid-row', createRow);
 registry.define('dgrid-row-view', createRowView);
@@ -80,15 +84,22 @@ export interface HasEvents {
 	events: Evented;
 }
 
-export interface DgridState extends WidgetState, HasColumns, HasCollection { }
+export interface HasScrollbarSize {
+	scrollbarSize: {
+		width: number;
+		height: number;
+	}
+}
 
-export interface DgridProperties extends WidgetProperties, HasColumns, HasCollection, HasEvents { }
+export interface DgridState extends WidgetState, HasColumns, HasCollection, HasScrollbarSize { }
+
+export interface DgridProperties extends WidgetProperties, HasColumns, HasCollection, HasEvents, HasScrollbarSize { }
 
 export interface DgridOptions extends WidgetOptions<DgridState, DgridProperties> { }
 
-export type DgridNodeOptions<S, P> = WidgetOptions<WidgetState & HasParent & S, HasColumns & HasCollection & HasEvents & P>;
+export type DgridNodeOptions<S, P> = WidgetOptions<WidgetState & HasParent & S, HasColumns & HasCollection & HasEvents & HasScrollbarSize & P>;
 
-export type DgridNode<S, P> = Widget<WidgetState & S, HasColumns & HasCollection & HasEvents & P>;
+export type DgridNode<S, P> = Widget<WidgetState & S, HasColumns & HasCollection & HasEvents & HasScrollbarSize & P>;
 
 const createDgrid = createWidgetBase
 	.override(<DgridOptions> {
@@ -102,8 +113,17 @@ const createDgrid = createWidgetBase
 			}
 		],
 		getChildrenNodes: function() {
+			if (!this.state.scrollbarSize) {
+				this.state.scrollbarSize = getScrollbarSize(document.createElement('div'));
+			}
+			this.properties.scrollbarSize = this.state.scrollbarSize;
+
 			return [
 				w('dgrid-header', <HeaderOptions> {
+					parent: this,
+					properties: create(this.properties, null)
+				}),
+				w('dgrid-header-scroll', <HeaderScrollOptions> {
 					parent: this,
 					properties: create(this.properties, null)
 				}),
