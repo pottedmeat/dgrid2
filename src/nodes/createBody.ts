@@ -1,11 +1,10 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import {DgridNodeOptions, DgridNode, HasCollection, SortEvent} from '../createDgrid';
+import { DgridNodeOptions, DgridNode, HasCollection } from '../createDgrid';
 import { w, v } from 'dojo-widgets/d';
 import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import { RowOptions } from './createRow';
 import createSort from 'dojo-stores/query/createSort';
-import watchedPropertyComparisonMixin from '../mixins/watchedPropertyComparisonMixin';
 
 interface HasData {
 	data: any[];
@@ -17,9 +16,9 @@ export type Body = DgridNode<HasData, null>;
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.mixin(watchedPropertyComparisonMixin)
-	.override({
-		watchedProperties: [ 'collection', 'sort' ]
+	.before('diffProperties', function() {
+		this.properties.collection = this.properties.collection;
+		this.properties.sort = this.properties.sort;
 	})
 	.override(<Partial<Body>> {
 		tagName: 'div',
@@ -49,26 +48,19 @@ export default createWidgetBase
 				data.map(item => {
 					const id = collection.identify(item)[0];
 
+					// don't let the row cache the item, just its identifier
+					const properties = create(this.properties, {
+						item: item
+					});
+
 					return w('dgrid-row', <RowOptions> {
 						id,
 						parent: this,
-						properties: create(this.properties, {
-							itemIdentifier: id,
-							item
+						properties: create(properties, {
+							itemIdentifier: id
 						})
 					});
 				})
 			) ];
-		}
-	})
-	.mixin({
-		initialize(instance: Body, options: BodyOptions) {
-			const {
-				events
-			} = options.properties;
-
-			events.on('dgrid-sorted', (event: SortEvent) => {
-				instance.invalidate();
-			});
 		}
 	});

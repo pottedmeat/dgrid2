@@ -4,7 +4,6 @@ import { w } from 'dojo-widgets/d';
 import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
-import watchedPropertyComparisonMixin from '../mixins/watchedPropertyComparisonMixin';
 
 export type HeaderCellOptions = DgridNodeOptions<null, HasColumn>;
 
@@ -12,10 +11,6 @@ export type HeaderCell = DgridNode<HasColumn, HasColumn>;
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.mixin(watchedPropertyComparisonMixin)
-	.override({
-		watchedProperties: [ 'column' ]
-	})
 	.override(<Partial<HeaderCell>> {
 		tagName: 'th',
 		classes: ['dgrid-cell'],

@@ -44,10 +44,6 @@ export interface SortEvent {
 	target: SortTarget;
 }
 
-export interface SortedEvent {
-	type: 'dgrid-sorted';
-}
-
 export interface Column {
 	id: string;
 	label: string;
@@ -140,11 +136,7 @@ const createDgrid = createWidgetBase
 					descending: (currentSort && currentSort.property === field && !currentSort.descending)
 				}];
 				properties.sort = newSort;
-				if (newSort.length) {
-					events.emit({
-						type: 'dgrid-sorted'
-					});
-				}
+				instance.invalidate();
 			});
 		}
 	});

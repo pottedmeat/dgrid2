@@ -1,14 +1,12 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import {HasColumn, DgridNodeOptions, DgridNode, SortTarget, SortEvent} from '../createDgrid';
 import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
-import watchedPropertyComparisonMixin from '../mixins/watchedPropertyComparisonMixin';
 
 export type HeaderCellViewOptions = DgridNodeOptions<null, HasColumn>;
 
 export type HeaderCellView = DgridNode<null, HasColumn>;
 
 export default createWidgetBase
-	.mixin(watchedPropertyComparisonMixin)
 	.override(<Partial<HeaderCellView>> {
 		tagName: 'span',
 		listeners: <VNodeListeners> {
