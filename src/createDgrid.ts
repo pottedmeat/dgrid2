@@ -1,4 +1,5 @@
 import { Widget, WidgetOptions, WidgetState, WidgetProperties } from 'dojo-widgets/interfaces';
+import Evented from 'dojo-core/Evented';
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import createHeader from './nodes/createHeader';
 import createHeaderView from './nodes/createHeaderView';
@@ -24,6 +25,29 @@ registry.define('dgrid-row-view', createRowView);
 registry.define('dgrid-cell', createCell);
 registry.define('dgrid-cell-view', createCellView);
 
+export interface Sort {
+	property: string;
+	descending: boolean;
+}
+
+export interface SortTarget extends HTMLElement {
+	sortable: boolean;
+	field: string;
+	columnId: string;
+	parentElement: SortTarget;
+	getAttribute(name: 'field' | 'columnId'): string | null;
+}
+
+export interface SortEvent {
+	type: 'dgrid-sort';
+	event: (MouseEvent | KeyboardEvent);
+	target: SortTarget;
+}
+
+export interface SortedEvent {
+	type: 'dgrid-sorted';
+}
+
 export interface Column {
 	id: string;
 	label: string;
@@ -41,6 +65,7 @@ export interface HasColumn {
 
 export interface HasCollection {
 	collection?: any;
+	sort?: Sort[];
 }
 
 export interface HasItem {
@@ -55,15 +80,19 @@ export interface HasParent {
 	parent: Widget<WidgetState, WidgetProperties>;
 }
 
+export interface HasEvents {
+	events: Evented;
+}
+
 export interface DgridState extends WidgetState, HasColumns, HasCollection { }
 
-export interface DgridProperties extends WidgetProperties, HasColumns, HasCollection {}
+export interface DgridProperties extends WidgetProperties, HasColumns, HasCollection, HasEvents { }
 
 export interface DgridOptions extends WidgetOptions<DgridState, DgridProperties> { }
 
-export type DgridNodeOptions<S, P> = WidgetOptions<WidgetState & HasParent & S, HasColumns & HasCollection & P>;
+export type DgridNodeOptions<S, P> = WidgetOptions<WidgetState & HasParent & S, HasColumns & HasCollection & HasEvents & P>;
 
-export type DgridNode<S, P> = Widget<WidgetState & S, HasColumns & HasCollection & P>;
+export type DgridNode<S, P> = Widget<WidgetState & S, HasColumns & HasCollection & HasEvents & P>;
 
 const createDgrid = createWidgetBase
 	.override(<DgridOptions> {
@@ -87,6 +116,36 @@ const createDgrid = createWidgetBase
 					properties: create(this.properties, null)
 				})
 			];
+		}
+	})
+	.mixin({
+		initialize (instance: Widget<DgridState, DgridProperties>, options: DgridOptions) {
+			const {
+				properties = <DgridProperties> {}
+			} = options;
+			options.properties = properties;
+
+			const events = properties.events = new Evented();
+
+			events.on('dgrid-sort', (event: SortEvent) => {
+				const {
+					sort
+				} = properties;
+
+				const target = event.target;
+				const field = (target.getAttribute('field') || target.getAttribute('columnId'));
+				const currentSort = (sort && sort[0]);
+				let newSort: Sort[] = [{
+					property: field,
+					descending: (currentSort && currentSort.property === field && !currentSort.descending)
+				}];
+				properties.sort = newSort;
+				if (newSort.length) {
+					events.emit({
+						type: 'dgrid-sorted'
+					});
+				}
+			});
 		}
 	});
 

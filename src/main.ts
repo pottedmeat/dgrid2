@@ -69,41 +69,41 @@ const createCustomDgrid = createDgrid.mixin({
 	}
 });
 
+const grid = w(createCustomDgrid, <any> {
+	id: 'grid',
+	properties: {
+		collection: store,
+		columns: [
+			{
+				id: 'age',
+				field: 'age',
+				label: 'Age',
+				sortable: true
+			},
+			{
+				id: 'gender',
+				field: 'gender',
+				label: 'Gender',
+				sortable: true
+			},
+			{
+				id: 'location',
+				field: 'location',
+				label: 'Location'
+			},
+			{
+				id: 'delete',
+				field: '',
+				label: ''
+			}
+		]
+	}
+});
+
 const createApp = createProjector.mixin({
 	mixin: {
 		getChildrenNodes: function(this: Projector): any {
-			return [
-				w(createCustomDgrid, <any> {
-					id: 'grid',
-					properties: {
-						collection: store,
-						columns: [
-							{
-								id: 'age',
-								field: 'age',
-								label: 'Age',
-								sortable: true
-							},
-							{
-								id: 'gender',
-								field: 'gender',
-								label: 'Gender',
-								sortable: true
-							},
-							{
-								id: 'location',
-								field: 'location',
-								label: 'Location'
-							},
-							{
-								id: 'delete',
-								field: '',
-								label: ''
-							}
-						]
-					}
-				})
-			];
+			return [ grid ];
 		}
 	}
 });

@@ -5,6 +5,7 @@ import { DgridNodeOptions, DgridNode } from '../createDgrid';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import { HeaderViewOptions } from './createHeaderView';
 import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
+import watchedPropertyComparisonMixin from '../mixins/watchedPropertyComparisonMixin';
 
 export type HeaderOptions = DgridNodeOptions<null, null>;
 
@@ -12,6 +13,7 @@ export type Header = DgridNode<null, null>;
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
+	.mixin(watchedPropertyComparisonMixin)
 	.override(<Partial<Header>> {
 		tagName: 'div',
 		classes: ['dgrid-header', 'dgrid-header-row'],
