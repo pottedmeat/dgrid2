@@ -1,5 +1,5 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { DgridNodeOptions, HasItemIdentifier, DgridNode, HasItem } from '../createDgrid';
+import { DgridNodeOptions, HasItemIdentifier, DgridNode, HasItem, HasColumn } from '../createDgrid';
 import { v, w } from 'dojo-widgets/d';
 import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
@@ -29,12 +29,13 @@ export default createWidgetBase
 			return [
 				v('tr', {},
 					columns.map(column => {
+						const properties = create(this.properties, <HasColumn> null);
+						properties.column = column;
+
 						return w('dgrid-cell', <CellOptions> {
 							id: column.id,
 							parent: this,
-							properties: create(this.properties, {
-								column: column
-							})
+							properties: properties
 						});
 					})
 				)

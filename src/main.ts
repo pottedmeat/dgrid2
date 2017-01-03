@@ -2,9 +2,9 @@ import createProjector, { Projector } from 'dojo-widgets/createProjector';
 import { w } from 'dojo-widgets/d';
 import createDgrid from './createDgrid';
 import createCellView from './nodes/createCellView';
-import createObservableStoreMixin from 'dojo-stores/store/mixins/createObservableStoreMixin';
-import createQueryMixin from 'dojo-stores/store/mixins/createQueryMixin';
-import createSubcollectionStore from 'dojo-stores/store/createSubcollectionStore';
+import { createObservableStore } from 'dojo-stores/store/mixins/createObservableStoreMixin';
+import createInMemoryStorage from 'dojo-stores/storage/createInMemoryStorage';
+
 import { CellView } from './nodes/createCellView';
 
 interface Person {
@@ -39,10 +39,13 @@ function createData(count: number): Person[] {
 }
 
 const data = createData(100);
-const store = createSubcollectionStore.mixin(createQueryMixin()).mixin(createObservableStoreMixin())(({
-	data: data,
+const storage = createInMemoryStorage({
 	idProperty: 'uuid'
-}));
+});
+const store = createObservableStore({
+	storage: storage,
+	data: data
+});
 
 const createCustomDgrid = createDgrid.mixin({
 	initialize(instance) {
@@ -69,41 +72,41 @@ const createCustomDgrid = createDgrid.mixin({
 	}
 });
 
-const grid = w(createCustomDgrid, <any> {
-	id: 'grid',
-	properties: {
-		collection: store,
-		columns: [
-			{
-				id: 'age',
-				field: 'age',
-				label: 'Age',
-				sortable: true
-			},
-			{
-				id: 'gender',
-				field: 'gender',
-				label: 'Gender',
-				sortable: true
-			},
-			{
-				id: 'location',
-				field: 'location',
-				label: 'Location'
-			},
-			{
-				id: 'delete',
-				field: '',
-				label: ''
-			}
-		]
-	}
-});
-
 const createApp = createProjector.mixin({
 	mixin: {
 		getChildrenNodes: function(this: Projector): any {
-			return [ grid ];
+			return [
+				w(createCustomDgrid, <any> {
+					id: 'grid',
+					properties: {
+						collection: store,
+						columns: [
+							{
+								id: 'age',
+								field: 'age',
+								label: 'Age',
+								sortable: true
+							},
+							{
+								id: 'gender',
+								field: 'gender',
+								label: 'Gender',
+								sortable: true
+							},
+							{
+								id: 'location',
+								field: 'location',
+								label: 'Location'
+							},
+							{
+								id: 'delete',
+								field: '',
+								label: ''
+							}
+						]
+					}
+				})
+			];
 		}
 	}
 });

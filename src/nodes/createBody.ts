@@ -1,5 +1,5 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { DgridNodeOptions, DgridNode, HasCollection } from '../createDgrid';
+import { DgridNodeOptions, DgridNode, HasCollection, HasItem, HasItemIdentifier } from '../createDgrid';
 import { w, v } from 'dojo-widgets/d';
 import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
@@ -46,19 +46,19 @@ export default createWidgetBase
 
 			return [ v('div.dgrid-content', {},
 				data.map(item => {
-					const id = collection.identify(item)[0];
+					const id = collection.identify(item);
 
 					// don't let the row cache the item, just its identifier
-					const properties = create(this.properties, {
-						item: item
-					});
+					let properties = create(this.properties, <HasItem & HasItemIdentifier> null);
+					properties.item = item;
+					// now create the cachable properties
+					properties = create(properties, null);
+					properties.itemIdentifier = id;
 
 					return w('dgrid-row', <RowOptions> {
 						id,
 						parent: this,
-						properties: create(properties, {
-							itemIdentifier: id
-						})
+						properties: properties
 					});
 				})
 			) ];
