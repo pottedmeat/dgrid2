@@ -32,9 +32,6 @@ export default createWidgetBase
 				};
 			}
 		],
-		applyChangedProperties: function() {
-			// no new state
-		},
 		getChildrenNodes: function (this: Header) {
 			return [
 				w('dgrid-header-view', <HeaderViewOptions> {

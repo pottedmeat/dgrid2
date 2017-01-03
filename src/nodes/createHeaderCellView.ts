@@ -29,9 +29,6 @@ export default createWidgetBase
 				}
 			}
 		},
-		applyChangedProperties: function() {
-			// no new state
-		},
 		getChildrenNodes: function (this: HeaderCellView) {
 			const {
 				column

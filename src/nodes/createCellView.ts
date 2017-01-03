@@ -7,9 +7,6 @@ export type CellView = DgridNode<null, HasItemIdentifier & HasItem & HasColumn>;
 
 export default createWidgetBase
 	.override(<Partial<CellView>> {
-		applyChangedProperties: function() {
-			// no new state
-		},
 		getChildrenNodes: function (this: CellView) {
 			const {
 				item,

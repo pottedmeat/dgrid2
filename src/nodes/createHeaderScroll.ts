@@ -8,9 +8,6 @@ export type HeaderScroll = DgridNode<null, HasItemIdentifier & HasItem & HasColu
 export default createWidgetBase
 	.override(<Partial<HeaderScroll>> {
 		classes: [ 'dgrid-header', 'dgrid-header-scroll', 'dgrid-scrollbar-width' ],
-		applyChangedProperties: function() {
-			// no new state
-		},
 		nodeAttributes: [
 			function () {
 				const {
