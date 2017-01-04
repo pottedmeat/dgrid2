@@ -1,29 +1,30 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { DgridNodeOptions, DgridNode, HasCollection, HasItem, HasItemIdentifier } from '../createDgrid';
+import { HasCollection } from '../createDgrid';
 import { w, v } from 'dojo-widgets/d';
-import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
-import { RowOptions } from './createRow';
 import createSort from 'dojo-stores/query/createSort';
 
 interface HasData {
 	data: any[];
 };
 
-export type BodyOptions = DgridNodeOptions<null, null>;
-
-export type Body = DgridNode<HasData, null>;
-
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.before('diffProperties', function() {
-		this.properties.collection = this.properties.collection;
-		this.properties.sort = this.properties.sort;
+	.around('diffProperties', function(diffProperties: (previousProperties: HasCollection) => string[]) {
+		return function(previousProperties: HasCollection) {
+			const changedPropertyKeys: string[] = diffProperties.call(this, {
+				sort: previousProperties.sort,
+				collection: previousProperties.collection
+			});
+			return changedPropertyKeys.filter((key) => {
+				return (key === 'sort' || key === 'collection');
+			});
+		};
 	})
-	.override(<Partial<Body>> {
+	.override({
 		tagName: 'div',
 		classes: ['dgrid-scroller'],
-		applyChangedProperties: function(this: Body, previousProperties: HasCollection & HasData, { collection: newCollection, sort: newSort }: HasCollection): void {
+		applyChangedProperties: function(previousProperties: HasCollection & HasData, { collection: newCollection, sort: newSort }: HasCollection): void {
 			if (newCollection || newSort) {
 				const collection = (newCollection || this.properties.collection);
 				const sort = (newSort || this.properties.sort);
@@ -36,29 +37,25 @@ export default createWidgetBase
 				}
 			}
 		},
-		getChildrenNodes: function (this: Body) {
+		getChildrenNodes: function () {
 			const {
-				collection
-			} = this.properties;
+				properties,
+				registry
+			} = this;
+			const collection = properties.collection;
 			const {
 				data = []
-			} = this.state;
+			} = <HasData> this.state;
 
 			return [ v('div.dgrid-content', {},
-				data.map(item => {
-					const id = collection.identify(item);
-
-					// don't let the row cache the item, just its identifier
-					let properties = create(this.properties, <HasItem & HasItemIdentifier> null);
-					properties.item = item;
-					// now create the cachable properties
-					properties = create(properties, null);
-					properties.itemIdentifier = id;
-
-					return w('dgrid-row', <RowOptions> {
-						id,
-						parent: this,
-						properties: properties
+				data.map((item) => {
+					return w('dgrid-row', {
+						id: collection.identify(item),
+						registry,
+						properties: {
+							item,
+							columns: properties.columns
+						}
 					});
 				})
 			) ];

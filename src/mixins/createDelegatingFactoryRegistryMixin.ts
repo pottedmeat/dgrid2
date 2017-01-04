@@ -17,7 +17,7 @@ export interface DelegatingFactoryRegistryMixinState extends WidgetState {
 }
 
 export interface DelegatingFactoryRegistryMixinOptions extends WidgetOptions<DelegatingFactoryRegistryMixinState, WidgetProperties> {
-	parent?: Widget<WidgetState, WidgetProperties>;
+	registry?: FactoryRegistry;
 }
 
 export interface DelegatingFactoryRegistryMixin {
@@ -32,11 +32,11 @@ export default createStateful
 			}
 		},
 		initialize(instance: Widget<DelegatingFactoryRegistryMixinState, WidgetProperties>,
-			{ parent }: DelegatingFactoryRegistryMixinOptions = {}
+			{ registry: parentRegistry }: DelegatingFactoryRegistryMixinOptions = {}
 		) {
 			let factoryRegistry: FactoryRegistryInterface = registry;
-			if (parent && parent.registry) {
-				factoryRegistry = parent.registry;
+			if (parentRegistry) {
+				factoryRegistry = parentRegistry;
 			}
 			factoryRegistryWeakMap.set(instance, new DelegatingFactoryRegistry(factoryRegistry));
 		}

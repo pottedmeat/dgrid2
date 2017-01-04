@@ -1,17 +1,21 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { DgridNodeOptions, HasItemIdentifier, DgridNode, HasItem, HasColumn } from '../createDgrid';
+import { HasColumns } from '../createDgrid';
 import { v, w } from 'dojo-widgets/d';
-import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
-import { CellOptions } from './createCell';
-
-export type RowViewOptions = DgridNodeOptions<null, HasItemIdentifier & HasItem>;
-
-export type RowView = DgridNode<null, HasItemIdentifier & HasItem>;
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.override(<Partial<RowView>> {
+	.around('diffProperties', function(diffProperties: (previousProperties: HasColumns) => string[]) {
+		return function(previousProperties: HasColumns) {
+			const changedPropertyKeys: string[] = diffProperties.call(this, {
+				columns: previousProperties.columns
+			});
+			return changedPropertyKeys.filter((key) => {
+				return (key === 'columns');
+			});
+		};
+	})
+	.override({
 		tagName: 'table',
 		classes: ['dgrid-row-table'],
 		nodeAttributes: [
@@ -21,21 +25,25 @@ export default createWidgetBase
 				};
 			}
 		],
-		getChildrenNodes: function (this: RowView) {
+		getChildrenNodes: function () {
+			const {
+				properties,
+				registry
+			} = this;
 			const {
 				columns
-			} = this.properties;
+			} = <HasColumns> properties;
 
 			return [
 				v('tr', {},
 					columns.map(column => {
-						const properties = create(this.properties, <HasColumn> null);
-						properties.column = column;
-
-						return w('dgrid-cell', <CellOptions> {
+						return w('dgrid-cell', {
 							id: column.id,
-							parent: this,
-							properties: properties
+							registry,
+							properties: {
+								column,
+								item: properties.item,
+							}
 						});
 					})
 				)

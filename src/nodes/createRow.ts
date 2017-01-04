@@ -1,17 +1,11 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
-import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
-import { DgridNodeOptions, HasItemIdentifier, DgridNode, HasItem } from '../createDgrid';
-import { RowViewOptions } from './createRowView';
-
-export type RowOptions = DgridNodeOptions<null, HasItemIdentifier & HasItem>;
-
-export type Row = DgridNode<HasItemIdentifier, HasItemIdentifier & HasItem>;
+import { HasItemIdentifier } from '../createDgrid';
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.override(<Partial<Row>> {
+	.override({
 		classes: [ 'dgrid-row' ],
 		nodeAttributes: [
 			function () {
@@ -20,14 +14,22 @@ export default createWidgetBase
 				};
 			}
 		],
-		applyChangedProperties: function(previousProperties: HasItemIdentifier, currentProperties: HasItemIdentifier) {
-			this.state.itemIdentifier = currentProperties.itemIdentifier;
+		diffProperties(): string[] {
+			return [];
 		},
-		getChildrenNodes: function (this: Row) {
+		getChildrenNodes: function () {
+			const {
+				properties,
+				registry
+			} = this;
+
 			return [
-				w('dgrid-row-view', <RowViewOptions> {
-					parent: this,
-					properties: create(this.properties, null)
+				w('dgrid-row-view', {
+					registry,
+					properties: {
+						columns: properties.columns,
+						item: properties.item
+					}
 				})
 			];
 		}

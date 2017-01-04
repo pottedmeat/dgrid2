@@ -5,8 +5,6 @@ import createCellView from './nodes/createCellView';
 import { createObservableStore } from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import createInMemoryStorage from 'dojo-stores/storage/createInMemoryStorage';
 
-import { CellView } from './nodes/createCellView';
-
 interface Person {
 	age: number;
 	gender: string;
@@ -38,7 +36,7 @@ function createData(count: number): Person[] {
 	return data;
 }
 
-const data = createData(100);
+const data = createData(250);
 const storage = createInMemoryStorage({
 	idProperty: 'uuid'
 });
@@ -49,7 +47,7 @@ const store = createObservableStore({
 
 const createCustomDgrid = createDgrid.mixin({
 	initialize(instance) {
-		instance.registry.define('dgrid-cell-view', createCellView.after('getChildrenNodes', function (this: CellView, children: string[]) {
+		instance.registry.define('dgrid-cell-view', createCellView.after('getChildrenNodes', function (children: string[]) {
 			const {
 				column
 			} = this.properties;

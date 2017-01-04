@@ -1,17 +1,12 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { HasColumn, DgridNodeOptions, DgridNode } from '../createDgrid';
+import { HasColumn } from '../createDgrid';
 import { w } from 'dojo-widgets/d';
-import { create } from 'dojo-core/lang';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
 
-export type HeaderCellOptions = DgridNodeOptions<null, HasColumn>;
-
-export type HeaderCell = DgridNode<HasColumn, HasColumn>;
-
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.override(<Partial<HeaderCell>> {
+	.override({
 		tagName: 'th',
 		classes: ['dgrid-cell'],
 		listeners: <VNodeListeners> {
@@ -33,14 +28,22 @@ export default createWidgetBase
 				};
 			}
 		],
-		applyChangedProperties: function(previousProperties: HasColumn, currentProperties: HasColumn) {
-			this.state.column = currentProperties.column;
+		diffProperties(): string[] {
+			return [];
 		},
-		getChildrenNodes: function (this: HeaderCell) {
+		getChildrenNodes: function () {
+			const {
+				properties,
+				registry
+			} = this;
+
 			return [
-				w('dgrid-header-cell-view', <HeaderCellOptions> {
-					parent: this,
-					properties: create(this.properties, null)
+				w('dgrid-header-cell-view', {
+					registry,
+					properties: {
+						column: properties.column,
+						onSortEvent: properties.onSortEvent
+					}
 				})
 			];
 		}

@@ -1,5 +1,4 @@
 import { Widget, WidgetOptions, WidgetState, WidgetProperties } from 'dojo-widgets/interfaces';
-import Evented from 'dojo-core/Evented';
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import createHeader from './nodes/createHeader';
 import createHeaderView from './nodes/createHeaderView';
@@ -12,12 +11,7 @@ import createRowView from './nodes/createRowView';
 import createCell from './nodes/createCell';
 import createCellView from './nodes/createCellView';
 import { w, registry } from 'dojo-widgets/d';
-import { create } from 'dojo-core/lang';
-import { HeaderOptions } from './nodes/createHeader';
-import { BodyOptions } from './nodes/createBody';
 import { getScrollbarSize } from './util';
-import { HeaderScrollOptions } from './nodes/createHeaderScroll';
-import WeakMap from 'dojo-shim/WeakMap';
 
 registry.define('dgrid-header', createHeader);
 registry.define('dgrid-header-view', createHeaderView);
@@ -44,7 +38,6 @@ export interface SortTarget extends HTMLElement {
 }
 
 export interface SortEvent {
-	type: 'dgrid-sort';
 	event: (MouseEvent | KeyboardEvent);
 	target: SortTarget;
 }
@@ -77,12 +70,8 @@ export interface HasItemIdentifier {
 	itemIdentifier: string;
 }
 
-export interface HasParent {
-	parent: Widget<WidgetState, WidgetProperties>;
-}
-
-export interface HasEvents {
-	events: Evented;
+export interface HasSortEvent {
+	onSortEvent: (event: SortEvent) => void;
 }
 
 export interface HasScrollbarSize {
@@ -92,17 +81,26 @@ export interface HasScrollbarSize {
 	}
 }
 
-export interface DgridState extends WidgetState, HasColumns, HasCollection, HasEvents, HasScrollbarSize { }
+export interface DgridState extends WidgetState, HasColumns, HasCollection, HasScrollbarSize { }
 
-export interface DgridProperties extends WidgetProperties, HasColumns, HasCollection, HasEvents, HasScrollbarSize { }
+export interface DgridProperties extends WidgetProperties, HasColumns, HasCollection { }
 
 export interface DgridOptions extends WidgetOptions<DgridState, DgridProperties> { }
 
-export type DgridNodeOptions<S, P> = WidgetOptions<WidgetState & HasParent & S, HasColumns & HasCollection & HasEvents & HasScrollbarSize & P>;
+function onSort(this: Widget<DgridState, DgridProperties>, event: SortEvent) {
+	const state = <DgridState> this.state;
+	const sort = state.sort;
 
-export type DgridNode<S, P> = Widget<WidgetState & S, HasColumns & HasCollection & HasEvents & HasScrollbarSize & P>;
-
-const propertiesWeakMap = new WeakMap<Widget<DgridState, DgridProperties>, DgridProperties>();
+	const target = event.target;
+	const field = (target.getAttribute('field') || target.getAttribute('columnId'));
+	const currentSort = (sort && sort[0]);
+	let newSort: Sort[] = [{
+		property: field,
+		descending: (currentSort && currentSort.property === field && !currentSort.descending)
+	}];
+	state.sort = newSort;
+	this.invalidate();
+}
 
 const createDgrid = createWidgetBase
 	.override(<DgridOptions> {
@@ -115,62 +113,50 @@ const createDgrid = createWidgetBase
 				};
 			}
 		],
-		getChildrenNodes: function() {
-			if (!this.state.scrollbarSize) {
-				this.state.scrollbarSize = getScrollbarSize(document.createElement('div'));
+		diffProperties<T extends HasCollection & HasColumns>(this: { properties: T }, previousProperties: T): string[] {
+			const currentProperties = this.properties;
+			const changedPropertyKeys: string[] = [];
+			if (currentProperties.collection != previousProperties.collection) {
+				changedPropertyKeys.push('collection');
 			}
-			this.properties.scrollbarSize = this.state.scrollbarSize;
+			return changedPropertyKeys;
+		},
+		getChildrenNodes: function() {
+			const {
+				state,
+				properties,
+				registry
+			} = this;
+			if (!state.scrollbarSize) {
+				state.scrollbarSize = getScrollbarSize(document.createElement('div'));
+			}
+
+			const onSortEvent = onSort.bind(this);
 
 			return [
-				w('dgrid-header', <HeaderOptions> {
-					parent: this,
-					properties: create(this.properties, null)
+				w('dgrid-header', {
+					registry,
+					properties: {
+						scrollbarSize: state.scrollbarSize,
+						columns: properties.columns,
+						onSortEvent
+					}
 				}),
-				w('dgrid-header-scroll', <HeaderScrollOptions> {
-					parent: this,
-					properties: create(this.properties, null)
+				w('dgrid-header-scroll', {
+					registry,
+					properties: {
+						scrollbarSize: state.scrollbarSize
+					}
 				}),
-				w('dgrid-body', <BodyOptions> {
-					parent: this,
-					properties: create(this.properties, null)
+				w('dgrid-body', {
+					registry,
+					properties: {
+						columns: properties.columns,
+						sort: state.sort,
+						collection: properties.collection
+					}
 				})
 			];
-		}
-	})
-    .before('diffProperties', function(this: Widget<DgridState, HasEvents & HasCollection & HasScrollbarSize>) {
-    	const properties = propertiesWeakMap.get(this);
-		this.properties.events = properties.events;
-		this.properties.sort = properties.sort;
-		this.properties.scrollbarSize = properties.scrollbarSize;
-	})
-	.after('destroy', function() {
-			propertiesWeakMap.delete(this);
-	})
-	.mixin({
-		initialize (instance: Widget<DgridState, DgridProperties>, options: DgridOptions) {
-			const {
-				properties = <DgridProperties> {}
-			} = options;
-			propertiesWeakMap.set(instance, properties);
-			options.properties = properties;
-
-			const events = properties.events = new Evented();
-
-			events.on('dgrid-sort', (event: SortEvent) => {
-				const {
-					sort
-				} = properties;
-
-				const target = event.target;
-				const field = (target.getAttribute('field') || target.getAttribute('columnId'));
-				const currentSort = (sort && sort[0]);
-				let newSort: Sort[] = [{
-					property: field,
-					descending: (currentSort && currentSort.property === field && !currentSort.descending)
-				}];
-				properties.sort = newSort;
-				instance.invalidate();
-			});
 		}
 	});
 

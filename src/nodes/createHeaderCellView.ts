@@ -1,25 +1,18 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import {HasColumn, DgridNodeOptions, DgridNode, SortTarget, SortEvent} from '../createDgrid';
+import {SortTarget, SortEvent, HasSortEvent} from '../createDgrid';
 import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
 
-export type HeaderCellViewOptions = DgridNodeOptions<null, HasColumn>;
-
-export type HeaderCellView = DgridNode<null, HasColumn>;
-
 export default createWidgetBase
-	.override(<Partial<HeaderCellView>> {
+	.override({
 		tagName: 'span',
 		listeners: <VNodeListeners> {
-			onclick: function (this: HeaderCellView, event: MouseEvent) {
-				const {
-					events
-				} = this.properties;
+			onclick: function (event: MouseEvent) {
+				const properties = <HasSortEvent> this.properties;
 
 				let target = <SortTarget> event.target;
 				while (target.parentElement) {
 					if (target.sortable) {
-						events.emit(<SortEvent> {
-							type: 'dgrid-sort',
+						properties.onSortEvent(<SortEvent> {
 							event: event,
 							target: target
 						});
@@ -29,7 +22,10 @@ export default createWidgetBase
 				}
 			}
 		},
-		getChildrenNodes: function (this: HeaderCellView) {
+		diffProperties(): string[] {
+			return [];
+		},
+		getChildrenNodes: function () {
 			const {
 				column
 			} = this.properties;
