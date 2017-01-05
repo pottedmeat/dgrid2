@@ -42,7 +42,7 @@ export default createWidgetBase
 							registry,
 							properties: {
 								column,
-								item: properties.item,
+								item: properties.item
 							}
 						});
 					})

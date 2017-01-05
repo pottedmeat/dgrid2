@@ -1,7 +1,6 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
-import { HasItemIdentifier } from '../createDgrid';
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)

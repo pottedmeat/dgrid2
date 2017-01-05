@@ -78,7 +78,7 @@ export interface HasScrollbarSize {
 	scrollbarSize: {
 		width: number;
 		height: number;
-	}
+	};
 }
 
 export interface DgridState extends WidgetState, HasColumns, HasCollection, HasScrollbarSize { }
@@ -114,12 +114,7 @@ const createDgrid = createWidgetBase
 			}
 		],
 		diffProperties<T extends HasCollection & HasColumns>(this: { properties: T }, previousProperties: T): string[] {
-			const currentProperties = this.properties;
-			const changedPropertyKeys: string[] = [];
-			if (currentProperties.collection != previousProperties.collection) {
-				changedPropertyKeys.push('collection');
-			}
-			return changedPropertyKeys;
+			return [];
 		},
 		getChildrenNodes: function() {
 			const {

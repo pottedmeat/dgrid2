@@ -1,5 +1,4 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { HasColumn} from '../createDgrid';
 import { w } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 

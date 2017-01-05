@@ -13,11 +13,10 @@ export default createWidgetBase
 	.around('diffProperties', function(diffProperties: (previousProperties: HasCollection) => string[]) {
 		return function(previousProperties: HasCollection) {
 			const changedPropertyKeys: string[] = diffProperties.call(this, {
-				sort: previousProperties.sort,
-				collection: previousProperties.collection
+				sort: previousProperties.sort
 			});
 			return changedPropertyKeys.filter((key) => {
-				return (key === 'sort' || key === 'collection');
+				return (key === 'sort');
 			});
 		};
 	})
