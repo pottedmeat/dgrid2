@@ -1,5 +1,5 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import {SortTarget, SortEvent, HasSortEvent} from '../createDgrid';
+import { SortTarget, SortEvent, HasSortEvent } from '../createDgrid';
 import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
 
 export default createWidgetBase

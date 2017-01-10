@@ -3,19 +3,11 @@ import { HasColumns } from '../createDgrid';
 import { v, w } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
+import { sortedColumn, filteredDiffProperties } from '../util';
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.around('diffProperties', function(diffProperties: (previousProperties: HasColumns) => string[]) {
-		return function(previousProperties: HasColumns) {
-			const changedPropertyKeys: string[] = diffProperties.call(this, {
-				columns: previousProperties.columns
-			});
-			return changedPropertyKeys.filter((key) => {
-				return (key === 'columns');
-			});
-		};
-	})
+	.around('diffProperties', filteredDiffProperties('columns', 'sort'))
 	.override({
 		tagName: 'table',
 		classes: ['dgrid-row-table'],
@@ -47,6 +39,7 @@ export default createWidgetBase
 						registry,
 						properties: {
 							column,
+							sort: sortedColumn(column, properties.sort),
 							onSortEvent: properties.onSortEvent
 						}
 					});

@@ -1,8 +1,9 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { HasCollection } from '../createDgrid';
+import { HasCollection, HasSort } from '../createDgrid';
 import { w, v } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import createSort from 'dojo-stores/query/createSort';
+import { filteredDiffProperties } from '../util';
 
 interface HasData {
 	data: any[];
@@ -10,20 +11,11 @@ interface HasData {
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.around('diffProperties', function(diffProperties: (previousProperties: HasCollection) => string[]) {
-		return function(previousProperties: HasCollection) {
-			const changedPropertyKeys: string[] = diffProperties.call(this, {
-				sort: previousProperties.sort
-			});
-			return changedPropertyKeys.filter((key) => {
-				return (key === 'sort');
-			});
-		};
-	})
+	.around('diffProperties', filteredDiffProperties('sort'))
 	.override({
 		tagName: 'div',
 		classes: ['dgrid-scroller'],
-		applyChangedProperties: function(previousProperties: HasCollection & HasData, { collection: newCollection, sort: newSort }: HasCollection): void {
+		applyChangedProperties: function(previousProperties: HasCollection & HasSort & HasData, { collection: newCollection, sort: newSort }: HasCollection & HasSort): void {
 			if (newCollection || newSort) {
 				const collection = (newCollection || this.properties.collection);
 				const sort = (newSort || this.properties.sort);

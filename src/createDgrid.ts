@@ -3,6 +3,7 @@ import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import createHeader from './nodes/createHeader';
 import createHeaderView from './nodes/createHeaderView';
 import createHeaderCell from './nodes/createHeaderCell';
+import createSortArrow from './nodes/createSortArrow';
 import createHeaderCellView from './nodes/createHeaderCellView';
 import createHeaderScroll from './nodes/createHeaderScroll';
 import createBody from './nodes/createBody';
@@ -16,6 +17,7 @@ import { getScrollbarSize } from './util';
 registry.define('dgrid-header', createHeader);
 registry.define('dgrid-header-view', createHeaderView);
 registry.define('dgrid-header-cell', createHeaderCell);
+registry.define('dgrid-sort-arrow', createSortArrow);
 registry.define('dgrid-header-cell-view', createHeaderCellView);
 registry.define('dgrid-header-scroll', createHeaderScroll);
 registry.define('dgrid-body', createBody);
@@ -59,6 +61,9 @@ export interface HasColumn {
 
 export interface HasCollection {
 	collection?: any;
+}
+
+export interface HasSort {
 	sort?: Sort[];
 }
 
@@ -81,7 +86,7 @@ export interface HasScrollbarSize {
 	};
 }
 
-export interface DgridState extends WidgetState, HasColumns, HasCollection, HasScrollbarSize { }
+export interface DgridState extends WidgetState, HasColumns, HasCollection, HasSort, HasScrollbarSize { }
 
 export interface DgridProperties extends WidgetProperties, HasColumns, HasCollection { }
 
@@ -134,6 +139,7 @@ const createDgrid = createWidgetBase
 					properties: {
 						scrollbarSize: state.scrollbarSize,
 						columns: properties.columns,
+						sort: state.sort,
 						onSortEvent
 					}
 				}),

@@ -2,9 +2,11 @@ import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
+import { filteredDiffProperties } from '../util';
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
+	.around('diffProperties', filteredDiffProperties('sort'))
 	.override({
 		tagName: 'div',
 		classes: ['dgrid-header', 'dgrid-header-row'],
@@ -25,9 +27,6 @@ export default createWidgetBase
 				};
 			}
 		],
-		diffProperties(): string[] {
-			return [];
-		},
 		getChildrenNodes: function () {
 			const properties = this.properties;
 
@@ -36,6 +35,7 @@ export default createWidgetBase
 					registry: this.registry,
 					properties: {
 						columns: properties.columns,
+						sort: properties.sort,
 						onSortEvent: properties.onSortEvent
 					}
 				})

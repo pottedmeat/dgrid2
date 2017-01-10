@@ -2,19 +2,11 @@ import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { HasColumns } from '../createDgrid';
 import { v, w } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
+import { filteredDiffProperties } from '../util';
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.around('diffProperties', function(diffProperties: (previousProperties: HasColumns) => string[]) {
-		return function(previousProperties: HasColumns) {
-			const changedPropertyKeys: string[] = diffProperties.call(this, {
-				columns: previousProperties.columns
-			});
-			return changedPropertyKeys.filter((key) => {
-				return (key === 'columns');
-			});
-		};
-	})
+	.around('diffProperties', filteredDiffProperties('columns'))
 	.override({
 		tagName: 'table',
 		classes: ['dgrid-row-table'],
