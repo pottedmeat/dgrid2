@@ -153,7 +153,7 @@ const createDgrid = createWidgetBase
 					registry,
 					scrollbarSize: state.scrollbarSize,
 					columns: properties.columns,
-					sort: state.sort,
+					sort: properties.sort,
 					onSortEvent: onSort.bind(this)
 				}),
 				w('dgrid-header-scroll', {
@@ -163,7 +163,7 @@ const createDgrid = createWidgetBase
 				w('dgrid-body', {
 					registry,
 					columns: properties.columns,
-					sort: state.sort,
+					sort: properties.sort,
 					data: properties.data,
 					idProperty: properties.idProperty,
 					collection: properties.collection

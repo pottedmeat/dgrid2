@@ -105,13 +105,15 @@ const createApp = createProjector.mixin({
 					id: 'grid-data',
 					columns,
 					data,
-					idProperty: 'uuid'
+					idProperty: 'uuid',
+					sort: [ { property: 'age', descending: true }, { property: 'gender' } ]
 				}),
 				v('h1', [ 'Store-Driven Grid' ]),
 				w(createCustomDgrid.mixin(storeMixin), <any> {
 					id: 'grid-store',
 					columns,
-					collection: store
+					collection: store,
+					sort: [ { property: 'age' }, { property: 'gender', descending: true } ]
 				})
 			];
 		}

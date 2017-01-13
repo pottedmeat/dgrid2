@@ -15,7 +15,16 @@ export default {
 				} = properties;
 
 				if (collection) {
-					return (sort && sort.length) ? collection.fetch(createSort(sort[0].property, sort[0].descending)) : collection.fetch();
+					if (sort && sort.length) {
+						const keys: string[] = [];
+						const descending: boolean[] = [];
+						for (const options of sort) {
+							keys.push(options.property);
+							descending.push(options.descending);
+						}
+						return collection.fetch(createSort(keys, descending));
+					}
+					return collection.fetch();
 				}
 
 				return new Promise((resolve) => {
