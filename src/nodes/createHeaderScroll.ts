@@ -16,5 +16,8 @@ export default createWidgetBase
 		],
 		diffProperties(): string[] {
 			return [];
+		},
+		assignProperties(previousProperties: any, newProperties: any) {
+			return newProperties;
 		}
 	});

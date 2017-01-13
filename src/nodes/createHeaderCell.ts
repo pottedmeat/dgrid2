@@ -1,20 +1,13 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
-import { VNodeListeners } from 'dojo-widgets/mixins/createVNodeEvented';
-import { filteredDiffProperties } from '../util';
+import { HasSort } from '../createDgrid';
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.around('diffProperties', filteredDiffProperties('sort'))
 	.override({
 		tagName: 'th',
 		classes: ['dgrid-cell'],
-		listeners: <VNodeListeners> {
-			onclick: function (ev: MouseEvent) {
-				console.log('cell', this, arguments);
-			}
-		},
 		nodeAttributes: [
 			function () {
 				const {
@@ -34,6 +27,16 @@ export default createWidgetBase
 				};
 			}
 		],
+		diffProperties(previousProperties: HasSort, newProperties: HasSort): string[] {
+			const changedPropertyKeys: string[] = [];
+			if (previousProperties.sort !== newProperties.sort) {
+				changedPropertyKeys.push('sort');
+			}
+			return changedPropertyKeys;
+		},
+		assignProperties(previousProperties: any, newProperties: any) {
+			return newProperties;
+		},
 		getChildrenNodes: function () {
 			const {
 				properties,
@@ -47,10 +50,7 @@ export default createWidgetBase
 			const children = [
 				w('dgrid-header-cell-view', {
 					registry,
-					properties: {
-						column,
-						onSortEvent: properties.onSortEvent
-					}
+					column
 				})
 			];
 

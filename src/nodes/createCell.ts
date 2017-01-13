@@ -17,6 +17,9 @@ export default createWidgetBase
 		diffProperties(): string[] {
 			return [];
 		},
+		assignProperties(previousProperties: any, newProperties: any) {
+			return newProperties;
+		},
 		getChildrenNodes: function () {
 			const {
 				properties,
@@ -26,10 +29,8 @@ export default createWidgetBase
 			return [
 				w('dgrid-cell-view', {
 					registry,
-					properties: {
-						item: properties.item,
-						column: properties.column
-					}
+					item: properties.item,
+					column: properties.column
 				})
 			];
 		}

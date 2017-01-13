@@ -1,4 +1,5 @@
-import { Column, Sort } from './createDgrid';
+import { Column } from './models/createColumn';
+import { Sort } from './models/createSort';
 
 function cleanupTestElement(element: HTMLElement) {
 	element.className = '';
@@ -35,19 +36,4 @@ export function sortedColumn(column: Column, sorts: Sort[]) {
 			}
 		}
 	}
-}
-
-export function filteredDiffProperties(...keys: string[]) {
-	return function(diffProperties: (previousProperties: any) => string[]) {
-		return function(previousProperties: any) {
-			const filteredProperties: { [key: string]: any } = {};
-			for (const key of keys) {
-				filteredProperties[key] = previousProperties[key];
-			}
-			const changedPropertyKeys: string[] = diffProperties.call(this, filteredProperties);
-			return changedPropertyKeys.filter((key) => {
-				return (keys.indexOf(key) !== -1);
-			});
-		};
-	};
 }

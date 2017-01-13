@@ -27,19 +27,24 @@
   },
   "dependencies": {
     "@reactivex/rxjs": "5.0.0-beta.6",
+    "@types/node": "^7.0.0",
     "dgrid": "^1.0.0",
     "dojo-actions": "^2.0.0-alpha.9",
     "dojo-app": "^2.0.0-alpha.9",
-    "dojo-compose": "^2.0.0-beta.18",
-    "dojo-core": "^2.0.0-alpha.18",
+    "dojo-compose": "^2.0.0-beta.20",
+    "dojo-core": "^2.0.0-alpha.19",
     "dojo-dom": "^2.0.0-alpha.6",
     "dojo-has": "^2.0.0-alpha.6",
+    "dojo-interfaces": "^2.0.0-alpha.10",
     "dojo-loader": "^2.0.0-beta.7",
     "dojo-routing": "^2.0.0-alpha.6",
     "dojo-shim": "^2.0.0-beta.6",
-    "dojo-stores": "^2.0.0-alpha.7",
-    "dojo-widgets": "^2.0.0-alpha.17",
+    "dojo-stores": "^2.0.0-alpha.8",
+    "dojo-widgets": "^2.0.0-alpha.18",
+    "glob": "^7.1.1",
     "immutable": "^3.8.1",
-    "maquette": "^2.3.2"
+    "js-yaml": "^3.7.0",
+    "maquette": "^2.3.2",
+    "typescript": "^2.1.5"
   }
 }

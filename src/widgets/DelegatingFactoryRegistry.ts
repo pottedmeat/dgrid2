@@ -1,8 +1,8 @@
 import FactoryRegistry from 'dojo-widgets/FactoryRegistry';
 import Promise from 'dojo-shim/Promise';
 import {
-	WidgetFactory,
-	FactoryRegistryInterface
+	FactoryRegistryInterface,
+	WidgetBaseFactory
 } from 'dojo-widgets/interfaces';
 
 export default class DelegatingFactoryRegistry extends FactoryRegistry {
@@ -21,7 +21,7 @@ export default class DelegatingFactoryRegistry extends FactoryRegistry {
 		return true;
 	}
 
-	get(factoryLabel: string): WidgetFactory | Promise<WidgetFactory> | null {
+	get(factoryLabel: string): WidgetBaseFactory | Promise<WidgetBaseFactory> | null {
 		if (!super.has(factoryLabel)) {
 			if (this.parent) {
 				return this.parent.get(factoryLabel);

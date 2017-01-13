@@ -3,7 +3,6 @@ import { HasCollection, HasSort } from '../createDgrid';
 import { w, v } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import createSort from 'dojo-stores/query/createSort';
-import { filteredDiffProperties } from '../util';
 
 interface HasData {
 	data: any[];
@@ -11,12 +10,26 @@ interface HasData {
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
-	.around('diffProperties', filteredDiffProperties('sort'))
 	.override({
 		tagName: 'div',
 		classes: ['dgrid-scroller'],
-		applyChangedProperties: function(previousProperties: HasCollection & HasSort & HasData, { collection: newCollection, sort: newSort }: HasCollection & HasSort): void {
-			if (newCollection || newSort) {
+		diffProperties(previousProperties: HasCollection & HasSort, newProperties: HasCollection & HasSort): string[] {
+			const changedPropertyKeys: string[] = [];
+			if (previousProperties.collection !== newProperties.collection) {
+				changedPropertyKeys.push('collection');
+			}
+			if (previousProperties.sort !== newProperties.sort) {
+				changedPropertyKeys.push('sort');
+			}
+			return changedPropertyKeys;
+		},
+		assignProperties: function(previousProperties: HasCollection & HasSort & HasData, newProperties: HasCollection & HasSort, changedPropertyKeys: string[]) {
+			const {
+				collection: newCollection,
+				sort: newSort
+			} = newProperties;
+
+			if (changedPropertyKeys.indexOf('collection') !== -1 || changedPropertyKeys.indexOf('sort') !== -1) {
 				const collection = (newCollection || this.properties.collection);
 				const sort = (newSort || this.properties.sort);
 				if (collection) {
@@ -27,6 +40,8 @@ export default createWidgetBase
 					});
 				}
 			}
+
+			return newProperties;
 		},
 		getChildrenNodes: function () {
 			const {
@@ -43,10 +58,8 @@ export default createWidgetBase
 					return w('dgrid-row', {
 						id: collection.identify(item),
 						registry,
-						properties: {
-							item,
-							columns: properties.columns
-						}
+						item,
+						columns: properties.columns
 					});
 				})
 			) ];

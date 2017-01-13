@@ -76,33 +76,31 @@ const createApp = createProjector.mixin({
 			return [
 				w(createCustomDgrid, <any> {
 					id: 'grid',
-					properties: {
-						collection: store,
-						columns: [
-							{
-								id: 'age',
-								field: 'age',
-								label: 'Age',
-								sortable: true
-							},
-							{
-								id: 'gender',
-								field: 'gender',
-								label: 'Gender',
-								sortable: true
-							},
-							{
-								id: 'location',
-								field: 'location',
-								label: 'Location'
-							},
-							{
-								id: 'delete',
-								field: '',
-								label: ''
-							}
-						]
-					}
+					collection: store,
+					columns: [
+						{
+							id: 'age',
+							field: 'age',
+							label: 'Age',
+							sortable: true
+						},
+						{
+							id: 'gender',
+							field: 'gender',
+							label: 'Gender',
+							sortable: true
+						},
+						{
+							id: 'location',
+							field: 'location',
+							label: 'Location'
+						},
+						{
+							id: 'delete',
+							field: '',
+							label: ''
+						}
+					]
 				})
 			];
 		}
