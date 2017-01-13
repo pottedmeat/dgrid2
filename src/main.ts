@@ -1,6 +1,7 @@
 import createProjector, { Projector } from 'dojo-widgets/createProjector';
-import { w } from 'dojo-widgets/d';
+import { v, w } from 'dojo-widgets/d';
 import createDgrid from './createDgrid';
+import storeMixin from './mixins/storeMixin';
 import createCellView from './nodes/createCellView';
 import { createObservableStore } from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import createInMemoryStorage from 'dojo-stores/storage/createInMemoryStorage';
@@ -70,37 +71,47 @@ const createCustomDgrid = createDgrid.mixin({
 	}
 });
 
+const columns = [
+	{
+		id: 'age',
+		field: 'age',
+		label: 'Age',
+		sortable: true
+	},
+	{
+		id: 'gender',
+		field: 'gender',
+		label: 'Gender',
+		sortable: true
+	},
+	{
+		id: 'location',
+		field: 'location',
+		label: 'Location'
+	},
+	{
+		id: 'delete',
+		field: '',
+		label: ''
+	}
+];
+
 const createApp = createProjector.mixin({
 	mixin: {
 		getChildrenNodes: function(this: Projector): any {
 			return [
+				v('h1', [ 'Array-Driven Grid' ]),
 				w(createCustomDgrid, <any> {
-					id: 'grid',
-					collection: store,
-					columns: [
-						{
-							id: 'age',
-							field: 'age',
-							label: 'Age',
-							sortable: true
-						},
-						{
-							id: 'gender',
-							field: 'gender',
-							label: 'Gender',
-							sortable: true
-						},
-						{
-							id: 'location',
-							field: 'location',
-							label: 'Location'
-						},
-						{
-							id: 'delete',
-							field: '',
-							label: ''
-						}
-					]
+					id: 'grid-data',
+					columns,
+					data,
+					idProperty: 'uuid'
+				}),
+				v('h1', [ 'Store-Driven Grid' ]),
+				w(createCustomDgrid.mixin(storeMixin), <any> {
+					id: 'grid-store',
+					columns,
+					collection: store
 				})
 			];
 		}
