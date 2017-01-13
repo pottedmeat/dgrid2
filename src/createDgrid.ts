@@ -18,6 +18,7 @@ import createCellView from './nodes/createCellView';
 import { w, registry } from 'dojo-widgets/d';
 import { getScrollbarSize } from './util';
 import createDelegatingFactoryRegistryMixin from './mixins/createDelegatingFactoryRegistryMixin';
+import { assign } from 'dojo-core/lang';
 
 registry.define('dgrid-header', createHeader);
 registry.define('dgrid-header-view', createHeaderView);
@@ -124,19 +125,17 @@ const createDgrid = createWidgetBase
 				changedPropertyKeys.push('columns');
 			}
 			// use createSortArray to get a static representation of the sort for comparison
-			if (!newProperties.sort) {
-				// use the value stored in state in case the user decides to manualy update sort through properties
-				newProperties.sort = this.state.sort;
-			}
 			if (newProperties.sort) {
-				// handle sorting if passed in the properties
 				newProperties.sort = createSortArray(newProperties.sort);
 				if (previousProperties.sort !== newProperties.sort) {
-					changedPropertyKeys.push('sort');
+					changedPropertyKeys.push(('sort');
+					this.state.sort = newProperties.sort;
 				}
 			}
-
-			return [];
+			return changedPropertyKeys;
+		},
+		assignProperties(this: Widget<WidgetProperties>, previousProperties: WidgetProperties, newProperties: WidgetProperties, changedPropertyKeys: string[]): WidgetProperties {
+			return assign({}, newProperties);
 		},
 		getChildrenNodes: function() {
 			const {
@@ -153,7 +152,7 @@ const createDgrid = createWidgetBase
 					registry,
 					scrollbarSize: state.scrollbarSize,
 					columns: properties.columns,
-					sort: properties.sort,
+					sort: state.sort,
 					onSortEvent: onSort.bind(this)
 				}),
 				w('dgrid-header-scroll', {
@@ -163,7 +162,7 @@ const createDgrid = createWidgetBase
 				w('dgrid-body', {
 					registry,
 					columns: properties.columns,
-					sort: properties.sort,
+					sort: state.sort,
 					data: properties.data,
 					idProperty: properties.idProperty,
 					collection: properties.collection
