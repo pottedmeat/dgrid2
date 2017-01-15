@@ -18,7 +18,8 @@ export default createWidgetBase
 				const {
 					registry,
 					properties: {
-						item
+						item,
+						itemIdentifier
 					}
 				} = this;
 
@@ -26,7 +27,8 @@ export default createWidgetBase
 					id: column.id,
 					registry,
 					column,
-					item
+					item,
+					itemIdentifier
 				};
 			}
 		}
