@@ -7,6 +7,13 @@ export interface DgridCellViewProperties extends WidgetProperties {}
 export interface DgridCellViewFactory extends ComposeFactory<Widget<DgridCellViewProperties>, WidgetOptions<WidgetState, DgridCellViewProperties>> {}
 
 export default createWidgetBase
+	.mixin({
+		mixin: {
+			getItem() {
+				return this.properties.item;
+			}
+		}
+	})
 	.override({
 		diffProperties(): string[] {
 			return [];
@@ -16,9 +23,11 @@ export default createWidgetBase
 		},
 		getChildrenNodes: function() {
 			const {
-				item,
-				column
-			} = this.properties;
+				properties: {
+					column
+				}
+			} = this;
+			const item = this.getItem();
 
 			const value = item[column.field];
 			return value ? [ '' + item[column.field] ] : [];

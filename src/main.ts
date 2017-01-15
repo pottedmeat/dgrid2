@@ -48,7 +48,7 @@ const store = createObservableStore({
 
 const createCustomDgrid = createDgrid.mixin({
 	initialize(instance) {
-		instance.registry.define('dgrid-cell-view', createCellView.after('getChildrenNodes', function (children: string[]) {
+		instance.registry.define('ddgrid-cell-view', createCellView.after('getChildrenNodes', function (children: string[]) {
 			const {
 				column
 			} = this.properties;

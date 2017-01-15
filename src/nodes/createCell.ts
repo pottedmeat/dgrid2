@@ -17,6 +17,7 @@ export default createWidgetBase
 					registry,
 					properties: {
 						item,
+						itemIdentifier,
 						column
 					}
 				} = this;
@@ -24,6 +25,7 @@ export default createWidgetBase
 				return {
 					registry,
 					item,
+					itemIdentifier,
 					column
 				};
 			}

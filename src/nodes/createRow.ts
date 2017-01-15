@@ -17,14 +17,16 @@ export default createWidgetBase
 					registry,
 					properties: {
 						columns,
-						item
+						item,
+						id: itemIdentifier
 					}
 				} = this;
 
 				return {
 					registry,
 					columns,
-					item
+					item,
+					itemIdentifier
 				};
 			}
 		}
