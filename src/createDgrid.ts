@@ -53,10 +53,6 @@ export interface HasColumn {
 	column: Column;
 }
 
-export interface HasCollection {
-	collection?: any;
-}
-
 export interface HasSort {
 	sort?: Sort[];
 }
@@ -80,9 +76,9 @@ export interface HasScrollbarSize {
 	};
 }
 
-export interface DgridState extends WidgetState, HasColumns, HasCollection, HasSort, HasScrollbarSize { }
+export interface DgridState extends WidgetState, HasColumns, HasSort, HasScrollbarSize { }
 
-export interface DgridProperties extends WidgetProperties, HasColumns, HasSort, HasCollection { }
+export interface DgridProperties extends WidgetProperties, HasColumns, HasSort { }
 
 export interface DgridOptions extends WidgetOptions<DgridState, DgridProperties> { }
 
@@ -103,6 +99,51 @@ function onSort(this: Widget<DgridProperties>, event: SortEvent) {
 
 const createDgrid = createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
+	.mixin({
+		mixin: {
+			getHeaderProperties(): any {
+				const {
+					state,
+					properties,
+					registry
+				} = this;
+
+				return {
+					registry,
+					scrollbarSize: state.scrollbarSize,
+					columns: properties.columns,
+					sort: state.sort,
+					onSortEvent: onSort.bind(this)
+				};
+			},
+			getHeaderScrollProperties(): any {
+				const {
+					state,
+					registry
+				} = this;
+
+				return {
+					registry,
+					scrollbarSize: state.scrollbarSize
+				};
+			},
+			getBodyProperties(): any {
+				const {
+					state,
+					properties,
+					registry
+				} = this;
+
+				return {
+					registry,
+					columns: properties.columns,
+					sort: state.sort,
+					data: properties.data,
+					idProperty: properties.idProperty
+				};
+			}
+		}
+	})
 	.override(<DgridOptions> {
 		tagName: 'div',
 		classes: ['dgrid-widgets', 'dgrid', 'dgrid-grid'],
@@ -115,10 +156,6 @@ const createDgrid = createWidgetBase
 		],
 		diffProperties(previousProperties: DgridProperties, newProperties: DgridProperties): string[] {
 			const changedPropertyKeys: string[] = [];
-			// compare collection by reference
-			if (previousProperties.collection !== newProperties.collection) {
-				changedPropertyKeys.push('collection');
-			}
 			// use createColumns to get a static representation of the columns for comparison
 			newProperties.columns = createColumns(newProperties.columns);
 			if (previousProperties.columns !== newProperties.columns) {
@@ -128,45 +165,27 @@ const createDgrid = createWidgetBase
 			if (newProperties.sort) {
 				newProperties.sort = createSortArray(newProperties.sort);
 				if (previousProperties.sort !== newProperties.sort) {
-					changedPropertyKeys.push(('sort');
+					changedPropertyKeys.push('sort');
 					this.state.sort = newProperties.sort;
 				}
 			}
 			return changedPropertyKeys;
 		},
-		assignProperties(this: Widget<WidgetProperties>, previousProperties: WidgetProperties, newProperties: WidgetProperties, changedPropertyKeys: string[]): WidgetProperties {
+		assignProperties(this: Widget<WidgetProperties>, previousProperties: WidgetProperties, newProperties: WidgetProperties): WidgetProperties {
 			return assign({}, newProperties);
 		},
 		getChildrenNodes: function() {
 			const {
-				state,
-				properties,
-				registry
+				state
 			} = this;
 			if (!state.scrollbarSize) {
 				state.scrollbarSize = getScrollbarSize(document.createElement('div'));
 			}
 
 			return [
-				w('dgrid-header', {
-					registry,
-					scrollbarSize: state.scrollbarSize,
-					columns: properties.columns,
-					sort: state.sort,
-					onSortEvent: onSort.bind(this)
-				}),
-				w('dgrid-header-scroll', {
-					registry,
-					scrollbarSize: state.scrollbarSize
-				}),
-				w('dgrid-body', {
-					registry,
-					columns: properties.columns,
-					sort: state.sort,
-					data: properties.data,
-					idProperty: properties.idProperty,
-					collection: properties.collection
-				})
+				w('dgrid-header', this.getHeaderProperties()),
+				w('dgrid-header-scroll', this.getHeaderScrollProperties()),
+				w('dgrid-body', this.getBodyProperties())
 			];
 		}
 	});

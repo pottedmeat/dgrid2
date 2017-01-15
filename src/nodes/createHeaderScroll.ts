@@ -1,4 +1,10 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
+import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
+import { ComposeFactory } from 'dojo-compose/compose';
+
+export interface DgridHeaderScrollProperties extends WidgetProperties {}
+
+export interface DgridHeaderScrollFactory extends ComposeFactory<Widget<DgridHeaderScrollProperties>, WidgetOptions<WidgetState, DgridHeaderScrollProperties>> {}
 
 export default createWidgetBase
 	.override({

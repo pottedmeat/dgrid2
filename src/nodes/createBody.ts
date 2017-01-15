@@ -1,19 +1,41 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { HasCollection, HasSort } from '../createDgrid';
+import { HasSort } from '../createDgrid';
 import { w, v } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import Promise from 'dojo-shim/Promise';
+import { ComposeFactory } from 'dojo-compose/compose';
+import { Widget, WidgetProperties, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
 
-interface HasData {
+export interface HasData {
 	data: any[];
 	idProperty?: string;
 };
+
+export interface DgridBodyProperties extends WidgetProperties, HasData, HasSort {}
+
+export interface DgridBodyFactory extends ComposeFactory<Widget<DgridBodyProperties>, WidgetOptions<WidgetState, DgridBodyProperties>> {}
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
 	.mixin({
 		mixin: {
-			getData(properties: HasData & HasSort): Promise<any[]> {
+			getRowProperties(item: any): any {
+				const {
+					registry,
+					properties: {
+						idProperty,
+						columns
+					}
+				} = this;
+
+				return {
+					id: item[idProperty],
+					item,
+					registry,
+					columns
+				};
+			},
+			getData(properties: DgridBodyProperties): Promise<any[]> {
 				return new Promise((resolve) => {
 					let {
 						data,
@@ -46,20 +68,17 @@ export default createWidgetBase
 	.override({
 		tagName: 'div',
 		classes: ['dgrid-scroller'],
-		diffProperties(previousProperties: HasData & HasCollection & HasSort, newProperties: HasData & HasCollection & HasSort): string[] {
+		diffProperties(previousProperties: DgridBodyProperties, newProperties: DgridBodyProperties): string[] {
 			const changedPropertyKeys: string[] = [];
 			if (!previousProperties.data && newProperties.data) {
 				changedPropertyKeys.push('data');
-			}
-			if (previousProperties.collection !== newProperties.collection) {
-				changedPropertyKeys.push('collection');
 			}
 			if (previousProperties.sort !== newProperties.sort) {
 				changedPropertyKeys.push('sort');
 			}
 			return changedPropertyKeys;
 		},
-		assignProperties: function(previousProperties: HasCollection & HasSort & HasData, newProperties: HasCollection & HasSort, changedPropertyKeys: string[]) {
+		assignProperties: function(previousProperties: DgridBodyProperties & HasData, newProperties: DgridBodyProperties, changedPropertyKeys: string[]) {
 			if (changedPropertyKeys.length) {
 				this.getData(newProperties).then((data: any[]) => {
 					this.state.data = data;
@@ -71,25 +90,12 @@ export default createWidgetBase
 		},
 		getChildrenNodes: function () {
 			const {
-				properties,
-				registry
-			} = this;
-			const {
-				collection,
-				idProperty
-			} = properties;
-			const {
 				data = []
 			} = <HasData> this.state;
 
 			return [ v('div.dgrid-content', {},
 				data.map((item) => {
-					return w('dgrid-row', {
-						id: (collection ? collection.identify(item) : item[idProperty]),
-						registry,
-						item,
-						columns: properties.columns
-					});
+					return w('dgrid-row', this.getRowProperties(item));
 				})
 			) ];
 		}

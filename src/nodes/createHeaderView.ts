@@ -3,6 +3,13 @@ import { HasColumns, HasSort, SortTarget, SortEvent, HasSortEvent } from '../cre
 import { v, w } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import { sortedColumn } from '../util';
+import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
+import { ComposeFactory } from 'dojo-compose/compose';
+import { Column } from '../models/createColumn';
+
+export interface DgridHeaderViewProperties extends WidgetProperties {}
+
+export interface DgridHeaderViewFactory extends ComposeFactory<Widget<DgridHeaderViewProperties>, WidgetOptions<WidgetState, DgridHeaderViewProperties>> {}
 
 function onClick(event: MouseEvent) {
 	const properties = <HasSortEvent> this.properties;
@@ -22,6 +29,27 @@ function onClick(event: MouseEvent) {
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
+	.mixin({
+		mixin: {
+			getHeaderCellProperties(column: Column): any {
+				const {
+					registry,
+					properties: {
+						sort,
+						onSortEvent
+					}
+				} = this;
+
+				return {
+					id: column.id,
+					registry,
+					column,
+					sort: sortedColumn(column, sort),
+					onSortEvent
+				};
+			}
+		}
+	})
 	.override({
 		tagName: 'table',
 		classes: ['dgrid-row-table'],
@@ -48,23 +76,11 @@ export default createWidgetBase
 			return newProperties;
 		},
 		getChildrenNodes: function () {
-			const {
-				properties,
-				registry
-			} = this;
-			const {
-				columns
-			} = <HasColumns> properties;
+			const columns = (<HasColumns> this.properties).columns;
 
 			return [ v('tr', {},
 				columns.map(column => {
-					return w('dgrid-header-cell', {
-						id: column.id,
-						registry,
-						column,
-						sort: sortedColumn(column, properties.sort),
-						onSortEvent: properties.onSortEvent
-					});
+					return w('dgrid-header-cell', this.getHeaderCellProperties(column));
 				})
 			) ];
 		}

@@ -1,9 +1,34 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
+import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
+import { ComposeFactory } from 'dojo-compose/compose';
+
+export interface DgridCellProperties extends WidgetProperties {}
+
+export interface DgridCellFactory extends ComposeFactory<Widget<DgridCellProperties>, WidgetOptions<WidgetState, DgridCellProperties>> {}
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
+	.mixin({
+		mixin: {
+			getCellViewProperties(): any {
+				const {
+					registry,
+					properties: {
+						item,
+						column
+					}
+				} = this;
+
+				return {
+					registry,
+					item,
+					column
+				};
+			}
+		}
+	})
 	.override({
 		tagName: 'td',
 		classes: ['dgrid-cell'],
@@ -21,17 +46,8 @@ export default createWidgetBase
 			return newProperties;
 		},
 		getChildrenNodes: function () {
-			const {
-				properties,
-				registry
-			} = this;
-
 			return [
-				w('dgrid-cell-view', {
-					registry,
-					item: properties.item,
-					column: properties.column
-				})
+				w('dgrid-cell-view', this.getCellViewProperties())
 			];
 		}
 	});

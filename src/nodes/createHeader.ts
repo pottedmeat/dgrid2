@@ -2,9 +2,36 @@ import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import { HasSort } from '../createDgrid';
+import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
+import { ComposeFactory } from 'dojo-compose/compose';
+
+export interface DgridHeaderProperties extends WidgetProperties {}
+
+export interface DgridHeaderFactory extends ComposeFactory<Widget<DgridHeaderProperties>, WidgetOptions<WidgetState, DgridHeaderProperties>> {}
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
+	.mixin({
+		mixin: {
+			getHeaderViewProperties(): any {
+				const {
+					registry,
+					properties: {
+						columns,
+						sort,
+						onSortEvent
+					}
+				} = this;
+
+				return {
+					registry,
+					columns,
+					sort,
+					onSortEvent
+				};
+			}
+		}
+	})
 	.override({
 		tagName: 'div',
 		classes: ['dgrid-header', 'dgrid-header-row'],
@@ -31,15 +58,8 @@ export default createWidgetBase
 			return newProperties;
 		},
 		getChildrenNodes: function () {
-			const properties = this.properties;
-
 			return [
-				w('dgrid-header-view', {
-					registry: this.registry,
-					columns: properties.columns,
-					sort: properties.sort,
-					onSortEvent: properties.onSortEvent
-				})
+				w('dgrid-header-view', this.getHeaderViewProperties())
 			];
 		}
 	});

@@ -2,9 +2,47 @@ import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
 import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
 import { HasSort } from '../createDgrid';
+import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
+import { ComposeFactory } from 'dojo-compose/compose';
+
+export interface DgridHeaderCellProperties extends WidgetProperties {}
+
+export interface DgridHeaderCellFactory extends ComposeFactory<Widget<DgridHeaderCellProperties>, WidgetOptions<WidgetState, DgridHeaderCellProperties>> {}
 
 export default createWidgetBase
 	.mixin(createDelegatingFactoryRegistryMixin)
+	.mixin({
+		mixin: {
+			getHeaderCellViewProperties(): any {
+				const {
+					registry,
+					properties: {
+						column
+					}
+				} = this;
+
+				return {
+					registry,
+					column
+				};
+			},
+			getSortArrowProperties(): any {
+				const {
+					registry,
+					properties: {
+						sort,
+						column
+					}
+				} = this;
+
+				return {
+					registry,
+					sort,
+					column
+				};
+			}
+		}
+	})
 	.override({
 		tagName: 'th',
 		classes: ['dgrid-cell'],
@@ -38,26 +76,12 @@ export default createWidgetBase
 			return newProperties;
 		},
 		getChildrenNodes: function () {
-			const {
-				properties,
-				registry
-			} = this;
-			const {
-				column,
-				sort
-			} = properties;
-
 			const children = [
-				w('dgrid-header-cell-view', {
-					registry,
-					column
-				})
+				w('dgrid-header-cell-view', this.getHeaderCellViewProperties())
 			];
 
-			if (sort) {
-				children.unshift(w('dgrid-sort-arrow', {
-					registry
-				}));
+			if (this.properties.sort) {
+				children.unshift(w('dgrid-sort-arrow', this.getSortArrowProperties()));
 			}
 			return children;
 		}

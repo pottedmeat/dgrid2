@@ -1,4 +1,10 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
+import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
+import { ComposeFactory } from 'dojo-compose/compose';
+
+export interface DgridSortArrowProperties extends WidgetProperties {}
+
+export interface DgridSortArrowFactory extends ComposeFactory<Widget<DgridSortArrowProperties>, WidgetOptions<WidgetState, DgridSortArrowProperties>> {}
 
 export default createWidgetBase
 	.override({
