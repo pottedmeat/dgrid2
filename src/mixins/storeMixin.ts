@@ -2,10 +2,7 @@ import { Widget } from 'dojo-widgets/interfaces';
 import { HasSort } from '../createDgrid';
 import createSort from 'dojo-stores/query/createSort';
 import { DgridBodyFactory, DgridBodyProperties } from '../nodes/createBody';
-import { DgridCellViewFactory } from '../nodes/createCellView';
-import externalState from 'dojo-widgets/mixins/externalState';
 import { DgridCellFactory } from '../nodes/createCell';
-import { ExternalStateProperties } from 'dojo-widgets/mixins/externalState';
 import { DgridRowFactory } from '../nodes/createRow';
 import { DgridRowViewFactory } from '../nodes/createRowView';
 
@@ -107,27 +104,9 @@ export default {
 
 		const cell: DgridCellFactory = <any> registry.get('dgrid-cell');
 		registry.define('dgrid-cell', cell
-			.after('getCellViewProperties', function(properties: ExternalStateProperties) {
-				const {
-					properties: {
-						itemIdentifier,
-						collection
-					}
-				} = this;
-				properties.id = itemIdentifier;
-				properties.externalState = collection;
+			.after('getCellViewProperties', function(properties: HasCollection) {
+				properties.collection = this.properties.collection;
 				return properties;
-			})
-		);
-
-		const cellView: DgridCellViewFactory = <any> registry.get('dgrid-cell-view');
-		// add external state mixin to cell views
-		registry.define('dgrid-cell-view', cellView
-			.mixin(externalState)
-			.override({
-				getItem() {
-					return this.state;
-				}
 			})
 		);
 	}
