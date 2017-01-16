@@ -1,7 +1,7 @@
 import { Widget, WidgetOptions, WidgetState, WidgetProperties } from 'dojo-widgets/interfaces';
 import { HasSort, DgridProperties } from '../createDgrid';
 import createSort from 'dojo-stores/query/createSort';
-import { DgridBodyFactory } from '../nodes/createBody';
+import { DgridBodyFactory, DgridBodyProperties, DgridBodyState } from '../nodes/createBody';
 import { DgridCellFactory } from '../nodes/createCell';
 import { DgridRowFactory } from '../nodes/createRow';
 import { DgridRowViewFactory } from '../nodes/createRowView';
@@ -10,8 +10,14 @@ import { QueryStore } from 'dojo-stores/store/mixins/createQueryTransformMixin';
 import { ObservableStore } from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import { QueryTransformResult } from 'dojo-stores/store/createQueryTransformResult';
 
+type Collection = QueryStore<any, ObservableStore<any, any, any>> | QueryTransformResult<any, ObservableStore<any, any, any>>;
+
 export interface HasCollection {
-	collection?: QueryStore<any, ObservableStore<any, any, any>> | QueryTransformResult<any, ObservableStore<any, any, any>>;
+	collection?: Collection;
+}
+
+export interface StoreMixinState {
+	store: Collection;
 }
 
 export interface StoreMixinFactory extends ComposeFactory<Widget<WidgetProperties & HasCollection>, WidgetOptions<WidgetState, WidgetProperties & HasCollection>> {}
@@ -53,10 +59,10 @@ const storeMixin: StoreMixinFactory = <any> {
 				};
 			})
 			.override({
-				getData(properties: HasCollection & HasSort) {
+				getData(this: { state: DgridBodyState & StoreMixinState }, properties: HasCollection & HasSort) {
 					const {
 						dataRangeStart,
-						dataRangeCount
+						dataRangeCount,
 					} = this.state;
 
 					const {
@@ -64,11 +70,7 @@ const storeMixin: StoreMixinFactory = <any> {
 						sort
 					} = properties;
 
-					// TODO remove this casting when dojo/stores is updated with a new type
 					let store = collection;
-					if ((<any> store)['source']) {
-						store = <any> (<any> store)['source'];
-					}
 
 					if (store) {
 						if (dataRangeStart || dataRangeStart === 0) {
@@ -76,7 +78,7 @@ const storeMixin: StoreMixinFactory = <any> {
 								store = store.range(dataRangeStart, dataRangeCount);
 							}
 							else {
-								store = store.range(dataRangeStart);
+								store = store.range(dataRangeStart, Infinity);
 							}
 						}
 
@@ -90,13 +92,9 @@ const storeMixin: StoreMixinFactory = <any> {
 							store = store.sort(createSort(keys, descending));
 						}
 
-						// TODO remove this casting when dojo/stores is updated with a new type
-						if ((<any> store)['source']) {
-							// if we've performed any modifications to the original store
-							return store.fetch();
-						}
-						// otherwise, return the original store with its original modifications
-						return collection.fetch();
+						this.state.store = store;
+
+						return store.fetch();
 					}
 
 					return new Promise((resolve) => {
