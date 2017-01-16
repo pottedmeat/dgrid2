@@ -2,7 +2,7 @@ import FactoryRegistry from 'dojo-widgets/FactoryRegistry';
 import Promise from 'dojo-shim/Promise';
 import {
 	FactoryRegistryInterface,
-	WidgetBaseFactory
+	WidgetBaseFactory, FactoryRegistryItem
 } from 'dojo-widgets/interfaces';
 
 export default class DelegatingFactoryRegistry extends FactoryRegistry {
@@ -19,6 +19,10 @@ export default class DelegatingFactoryRegistry extends FactoryRegistry {
 			return this.parent.has(factoryLabel);
 		}
 		return true;
+	}
+
+	define(factoryLabel: string, registryItem: FactoryRegistryItem): void {
+		this.registry.set(factoryLabel, registryItem);
 	}
 
 	get(factoryLabel: string): WidgetBaseFactory | Promise<WidgetBaseFactory> | null {
