@@ -30,7 +30,7 @@ function onPaging(this: Dgrid & { state: DgridState }, event: PagingEvent) {
 	this.invalidate();
 }
 
-const PaginationPropertyKeys: Array<keyof (HasPagination & HasDataTotal)> = [ 'pagingLinkCount', 'rowsPerPage', 'onPagingEvent', 'dataTotal' ];
+const paginationPropertyKeys: Array<keyof (HasPagination & HasDataTotal)> = [ 'pagingLinkCount', 'rowsPerPage', 'onPagingEvent', 'dataTotal' ];
 
 const paginationMixin: PaginationMixinFactory = <any> {
 	aspectAdvice: {
@@ -52,6 +52,7 @@ const paginationMixin: PaginationMixinFactory = <any> {
 		},
 		after: {
 			getFooterProperties<P extends HasPagination & HasDataTotal>(this: Widget<P> & { state: DgridState}, properties: P) {
+				// TODO: Detect when sort/data change
 				properties.pagingLinkCount = this.properties.pagingLinkCount;
 				properties.rowsPerPage = this.properties.rowsPerPage;
 				properties.dataTotal = this.state.dataTotal;
@@ -69,7 +70,7 @@ const paginationMixin: PaginationMixinFactory = <any> {
 				// add collection check (by reference) to dgrid-body
 				return function(previousProperties: P, newProperties: P) {
 					const changedPropertyKeys = diffProperties.apply(this, arguments);
-					for (const key of PaginationPropertyKeys) {
+					for (const key of paginationPropertyKeys) {
 						if (previousProperties[key] !== newProperties[key]) {
 							changedPropertyKeys.push(key);
 						}

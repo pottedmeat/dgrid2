@@ -1,7 +1,7 @@
 import { Widget, WidgetOptions, WidgetState, WidgetProperties } from 'dojo-widgets/interfaces';
-import { HasSort, DgridProperties } from '../createDgrid';
+import { DgridProperties } from '../createDgrid';
 import createSort from 'dojo-stores/query/createSort';
-import { DgridBodyFactory, DgridBodyProperties, DgridBodyState } from '../nodes/createBody';
+import { DgridBodyFactory, DgridBodyProperties } from '../nodes/createBody';
 import { DgridCellFactory } from '../nodes/createCell';
 import { DgridRowFactory } from '../nodes/createRow';
 import { DgridRowViewFactory } from '../nodes/createRowView';
@@ -75,15 +75,6 @@ const storeMixin: StoreMixinFactory = <any> {
 
 					let store = collection;
 					if (store) {
-						if (dataRangeStart || dataRangeStart === 0) {
-							if (dataRangeCount > 0) {
-								store = store.range(dataRangeStart, dataRangeCount);
-							}
-							else {
-								store = store.range(dataRangeStart, Infinity);
-							}
-						}
-
 						if (sort && sort.length) {
 							const keys: string[] = [];
 							const descending: boolean[] = [];
@@ -92,6 +83,15 @@ const storeMixin: StoreMixinFactory = <any> {
 								descending.push(!!options.descending);
 							}
 							store = store.sort(createSort(keys, descending));
+						}
+
+						if (dataRangeStart || dataRangeStart === 0) {
+							if (dataRangeCount > 0) {
+								store = store.range(dataRangeStart, dataRangeCount);
+							}
+							else {
+								store = store.range(dataRangeStart, Infinity);
+							}
 						}
 
 						this.state.store = store;

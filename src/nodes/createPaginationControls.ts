@@ -12,9 +12,13 @@ interface DgridPaginationState extends WidgetState {
 	currentPage: number;
 };
 
-function createPageLink(page: number, label: string, tabindex = '0'): DNode {
+function createPageLink(page: number, label: string, disabled: boolean, tabindex = '0'): DNode {
 	return v('span.dgrid-page-link', {
+		classes: {
+			'dgrid-page-disabled': disabled
+		},
 		'aria-label': 'Go to page',
+		page,
 		tabindex
 	}, [ label ]);
 }
@@ -23,36 +27,41 @@ function createSkipNode(): DNode {
 	return v('span.dgrid-page-skip', [ '...' ]);
 }
 
-function goToRelativePage(offset: number) {
-	return function(this: DgridPaginationControls & { state: DgridPaginationState }, event: MouseEvent) {
-		const {
-			state: {
-				currentPage = 0
-			},
-			properties: {
-				rowsPerPage,
-				dataTotal,
-				onPagingEvent
-			}
-		} = this;
-
-		const page = (currentPage + offset);
-		const start = (page * rowsPerPage);
-		if (start >= 0 && start < dataTotal) {
-			this.state.currentPage = page;
-			if (onPagingEvent) {
-				onPagingEvent(<PagingEvent> {
-					start: start,
-					count: rowsPerPage
-				});
-			}
-		}
-	};
+export interface PagingTarget extends HTMLElement {
+	page: number;
+	parentElement: PagingTarget;
 }
 
-const goToPrevious = goToRelativePage(-1);
+function onClick(this: DgridPaginationControls & { state: DgridPaginationState }, event: MouseEvent) {
+	const {
+		properties: {
+			rowsPerPage,
+			dataTotal,
+			onPagingEvent
+		}
+	} = this;
 
-const goToNext = goToRelativePage(1);
+	if (onPagingEvent) {
+		let target = <PagingTarget> event.target;
+		while (target.parentElement) {
+			if (target.page) {
+				const page = target.page;
+				const start = ((page - 1) * rowsPerPage);
+				if (start >= 0 && start < dataTotal) {
+					this.state.currentPage = page;
+					if (onPagingEvent) {
+						onPagingEvent(<PagingEvent> {
+							start: start,
+							count: rowsPerPage
+						});
+					}
+				}
+				return;
+			}
+			target = target.parentElement;
+		}
+	}
+}
 
 const createPaginationControls = createWidgetBase
 	.mixin({
@@ -60,15 +69,17 @@ const createPaginationControls = createWidgetBase
 			createPageLinks(): DNode[] {
 				const {
 					state: {
-						currentPage = 0
+						currentPage = 1
 					},
 					properties: {
-						pagingLinkCount
+						pagingLinkCount,
+						dataTotal,
+						rowsPerPage
 					}
 				} = this;
 
 				const pageLinks: DNode[] = [];
-				pageLinks.push(createPageLink(1, '1 ', '-1'));
+				pageLinks.push(createPageLink(1, '1 ', currentPage === 1, '-1'));
 
 				let start = (currentPage - pagingLinkCount);
 
@@ -79,9 +90,9 @@ const createPaginationControls = createWidgetBase
 					start = 2;
 				}
 
-				const totalPages = Math.ceil(this.properties.dataTotal / this.properties.rowsPerPage);
+				const totalPages = Math.ceil(dataTotal / rowsPerPage);
 				for (let i = start; i < Math.min(currentPage + pagingLinkCount + 1, totalPages); i++) {
-					pageLinks.push(createPageLink(i, i + ' '));
+					pageLinks.push(createPageLink(i, i + ' ', currentPage === i));
 				}
 
 				if (currentPage + pagingLinkCount + 1 < totalPages) {
@@ -90,7 +101,7 @@ const createPaginationControls = createWidgetBase
 
 				// last link
 				if (totalPages > 1) {
-					pageLinks.push(createPageLink(totalPages, String(totalPages)));
+					pageLinks.push(createPageLink(totalPages, String(totalPages), currentPage === totalPages));
 				}
 
 				return pageLinks;
@@ -98,7 +109,7 @@ const createPaginationControls = createWidgetBase
 			getPaginationStatus() {
 				const {
 					state: {
-						currentPage = 0
+						currentPage = 1
 					},
 					properties: {
 						rowsPerPage,
@@ -106,7 +117,7 @@ const createPaginationControls = createWidgetBase
 					}
 				} = this;
 
-				const paginationStart = (currentPage * rowsPerPage) + 1;
+				const paginationStart = ((currentPage - 1) * rowsPerPage) + 1;
 				const paginationEnd = (paginationStart + rowsPerPage);
 
 				return `${paginationStart} - ${paginationEnd} of ${dataTotal} results`;
@@ -116,24 +127,46 @@ const createPaginationControls = createWidgetBase
 	.override({
 		tagName: 'div',
 		classes: [ 'dgrid-pagination' ],
+		nodeAttributes: [
+			function () {
+				return {
+					onclick: onClick,
+					bind: this
+				};
+			}
+		],
 		getChildrenNodes() {
+			const {
+				state: {
+					currentPage = 1
+				},
+				properties: {
+					rowsPerPage,
+					dataTotal
+				}
+			} = this;
+
 			return [
 				v('div.dgrid-status', {
 					tabindex: '0'
 				}, [ this.getPaginationStatus() ]),
 				v('div.dgrid-navigation', [
-					v('span.dgrid-previous.dgrid-page-link.dgrid-page-disabled', {
+					v('span.dgrid-previous.dgrid-page-link', {
+						classes: {
+							'dgrid-page-disabled': (currentPage === 1)
+						},
 						'aria-label': 'Go to previous page',
 						tabindex: '-1',
-						onclick: goToPrevious,
-						bind: this
+						page: (currentPage - 1)
 					}, [ '<' ]),
 					v('span.dgrid-pagination-links', this.createPageLinks()),
 					v('span.dgrid-next.dgrid-page-link', {
+						classes: {
+							'dgrid-page-disabled': ((currentPage * rowsPerPage) >= dataTotal)
+						},
 						'aria-label': 'Go to next page',
 						tabindex: '0',
-						onclick: goToNext,
-						bind: this
+						page: (currentPage + 1)
 					}, [ '>' ])
 				])
 			];

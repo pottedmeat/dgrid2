@@ -1,5 +1,5 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { HasColumns, HasSort, SortTarget, SortEvent, HasSortEvent } from '../createDgrid';
+import { HasColumns, HasSort, SortTarget, SortEvent } from '../createDgrid';
 import { v, w } from 'dojo-widgets/d';
 import delegatingFactoryRegistryMixin from '../mixins/delegatingFactoryRegistryMixin';
 import { sortedColumn } from '../util';

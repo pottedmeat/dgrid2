@@ -13,11 +13,13 @@ export interface HasData {
 
 export interface DgridBodyProperties extends WidgetProperties, HasData, HasDataRange, HasDataLoadEvent, HasSort {}
 
-export interface DgridBodyState extends WidgetState {}
+export interface DgridBodyState extends WidgetState, HasData {}
 
-export interface DgridBodyFactory extends ComposeFactory<Widget<DgridBodyProperties>, WidgetOptions<DgridBodyState, DgridBodyProperties>> {}
+export type DgridBody = Widget<DgridBodyProperties>;
 
-const DgridBodyPropertyKeys: Array<keyof (HasSort & HasDataRange)> = [ 'sort', 'dataRangeStart', 'dataRangeCount' ];
+export interface DgridBodyFactory extends ComposeFactory<DgridBody, WidgetOptions<DgridBodyState, DgridBodyProperties>> {}
+
+const bodyPropertyKeys: Array<keyof (HasSort & HasDataRange)> = [ 'sort', 'dataRangeStart', 'dataRangeCount' ];
 
 export default createWidgetBase
 	.mixin(delegatingFactoryRegistryMixin)
@@ -52,15 +54,6 @@ export default createWidgetBase
 						total: data.length
 					});
 
-					if (dataRangeStart || dataRangeStart === 0) {
-						if (dataRangeCount > 0) {
-							data = data.slice(dataRangeStart, dataRangeStart + dataRangeCount);
-						}
-						else {
-							data = data.slice(dataRangeStart);
-						}
-					}
-
 					if (sort) {
 						data = data.sort((a: any, b: any) => {
 							for (let field of sort) {
@@ -80,6 +73,15 @@ export default createWidgetBase
 						});
 					}
 
+					if (dataRangeStart || dataRangeStart === 0) {
+						if (dataRangeCount > 0) {
+							data = data.slice(dataRangeStart, dataRangeStart + dataRangeCount);
+						}
+						else {
+							data = data.slice(dataRangeStart);
+						}
+					}
+
 					resolve(data);
 				});
 			}
@@ -93,7 +95,7 @@ export default createWidgetBase
 			if (!previousProperties.data && newProperties.data) {
 				changedPropertyKeys.push('data');
 			}
-			for (const key of DgridBodyPropertyKeys) {
+			for (const key of bodyPropertyKeys) {
 				if (previousProperties[key] !== newProperties[key]) {
 					changedPropertyKeys.push(key);
 				}
@@ -110,10 +112,10 @@ export default createWidgetBase
 
 			return newProperties;
 		},
-		getChildrenNodes: function () {
+		getChildrenNodes: function() {
 			const {
 				data = []
-			} = <HasData> this.state;
+			} = <DgridBodyState> this.state;
 
 			return [ v('div.dgrid-content', {},
 				data.map((item) => {
