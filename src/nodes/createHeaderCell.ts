@@ -1,6 +1,6 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { w } from 'dojo-widgets/d';
-import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
+import delegatingFactoryRegistryMixin from '../mixins/delegatingFactoryRegistryMixin';
 import { HasSort } from '../createDgrid';
 import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
 import { ComposeFactory } from 'dojo-compose/compose';
@@ -10,7 +10,7 @@ export interface DgridHeaderCellProperties extends WidgetProperties {}
 export interface DgridHeaderCellFactory extends ComposeFactory<Widget<DgridHeaderCellProperties>, WidgetOptions<WidgetState, DgridHeaderCellProperties>> {}
 
 export default createWidgetBase
-	.mixin(createDelegatingFactoryRegistryMixin)
+	.mixin(delegatingFactoryRegistryMixin)
 	.mixin({
 		mixin: {
 			getHeaderCellViewProperties(): any {

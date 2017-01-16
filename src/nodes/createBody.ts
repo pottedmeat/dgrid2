@@ -1,7 +1,7 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { HasSort } from '../createDgrid';
 import { w, v } from 'dojo-widgets/d';
-import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
+import delegatingFactoryRegistryMixin from '../mixins/delegatingFactoryRegistryMixin';
 import Promise from 'dojo-shim/Promise';
 import { ComposeFactory } from 'dojo-compose/compose';
 import { Widget, WidgetProperties, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
@@ -11,12 +11,19 @@ export interface HasData {
 	idProperty?: string;
 };
 
+export interface HasDataRange {
+	dataRangeStart: number;
+	dataRangeCount: number;
+}
+
 export interface DgridBodyProperties extends WidgetProperties, HasData, HasSort {}
 
-export interface DgridBodyFactory extends ComposeFactory<Widget<DgridBodyProperties>, WidgetOptions<WidgetState, DgridBodyProperties>> {}
+export interface DgridBodyState extends WidgetState, HasDataRange {}
+
+export interface DgridBodyFactory extends ComposeFactory<Widget<DgridBodyProperties>, WidgetOptions<DgridBodyState, DgridBodyProperties>> {}
 
 export default createWidgetBase
-	.mixin(createDelegatingFactoryRegistryMixin)
+	.mixin(delegatingFactoryRegistryMixin)
 	.mixin({
 		mixin: {
 			getRowProperties(item: any): any {
@@ -37,10 +44,24 @@ export default createWidgetBase
 			},
 			getData(properties: DgridBodyProperties): Promise<any[]> {
 				return new Promise((resolve) => {
+					const {
+						dataRangeStart,
+						dataRangeCount
+					} = this.state;
+
 					let {
 						data,
 						sort
 					} = properties;
+
+					if (dataRangeStart || dataRangeStart === 0) {
+						if (dataRangeCount > 0) {
+							data = data.slice(dataRangeStart, dataRangeStart + dataRangeCount);
+						}
+						else {
+							data = data.slice(dataRangeStart);
+						}
+					}
 
 					if (sort) {
 						data = data.sort((a: any, b: any) => {

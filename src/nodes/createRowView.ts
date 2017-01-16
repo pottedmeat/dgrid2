@@ -1,7 +1,7 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { HasColumns } from '../createDgrid';
 import { v, w } from 'dojo-widgets/d';
-import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
+import delegatingFactoryRegistryMixin from '../mixins/delegatingFactoryRegistryMixin';
 import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
 import { ComposeFactory } from 'dojo-compose/compose';
 import { Column } from '../models/createColumn';
@@ -11,7 +11,7 @@ export interface DgridRowViewProperties extends WidgetProperties {}
 export interface DgridRowViewFactory extends ComposeFactory<Widget<DgridRowViewProperties>, WidgetOptions<WidgetState, DgridRowViewProperties>> {}
 
 export default createWidgetBase
-	.mixin(createDelegatingFactoryRegistryMixin)
+	.mixin(delegatingFactoryRegistryMixin)
 	.mixin({
 		mixin: {
 			getCellProperties(column: Column): any {

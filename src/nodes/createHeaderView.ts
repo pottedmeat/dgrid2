@@ -1,7 +1,7 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
 import { HasColumns, HasSort, SortTarget, SortEvent, HasSortEvent } from '../createDgrid';
 import { v, w } from 'dojo-widgets/d';
-import createDelegatingFactoryRegistryMixin from '../mixins/createDelegatingFactoryRegistryMixin';
+import delegatingFactoryRegistryMixin from '../mixins/delegatingFactoryRegistryMixin';
 import { sortedColumn } from '../util';
 import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
 import { ComposeFactory } from 'dojo-compose/compose';
@@ -28,7 +28,7 @@ function onClick(event: MouseEvent) {
 }
 
 export default createWidgetBase
-	.mixin(createDelegatingFactoryRegistryMixin)
+	.mixin(delegatingFactoryRegistryMixin)
 	.mixin({
 		mixin: {
 			getHeaderCellProperties(column: Column): any {

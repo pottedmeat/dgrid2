@@ -3,8 +3,8 @@ import { v, w } from 'dojo-widgets/d';
 import createDgrid from './createDgrid';
 import storeMixin from './mixins/storeMixin';
 import createCellView from './nodes/createCellView';
-import { createObservableStore } from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import createInMemoryStorage from 'dojo-stores/storage/createInMemoryStorage';
+import { createQueryStore } from 'dojo-stores/store/mixins/createQueryTransformMixin';
 
 interface Person {
 	age: number;
@@ -41,7 +41,7 @@ const data = createData(250);
 const storage = createInMemoryStorage({
 	idProperty: 'uuid'
 });
-const store = createObservableStore({
+const store = createQueryStore({
 	storage: storage,
 	data: data
 });
@@ -109,7 +109,7 @@ const createApp = createProjector.mixin({
 					sort: [ { property: 'age', descending: true }, { property: 'gender' } ]
 				}),
 				v('h1', [ 'Store-Driven Grid' ]),
-				w(createCustomDgrid.mixin(storeMixin), <any> {
+				w(createCustomDgrid.mixin(storeMixin), {
 					id: 'grid-store',
 					columns,
 					collection: store,

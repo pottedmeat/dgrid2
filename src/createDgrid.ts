@@ -17,7 +17,7 @@ import createCell from './nodes/createCell';
 import createCellView from './nodes/createCellView';
 import { w, registry } from 'dojo-widgets/d';
 import { getScrollbarSize } from './util';
-import createDelegatingFactoryRegistryMixin from './mixins/createDelegatingFactoryRegistryMixin';
+import delegatingFactoryRegistryMixin from './mixins/delegatingFactoryRegistryMixin';
 import { assign } from 'dojo-core/lang';
 
 registry.define('dgrid-header', createHeader);
@@ -98,7 +98,7 @@ function onSort(this: Widget<DgridProperties>, event: SortEvent) {
 }
 
 const createDgrid = createWidgetBase
-	.mixin(createDelegatingFactoryRegistryMixin)
+	.mixin(delegatingFactoryRegistryMixin)
 	.mixin({
 		mixin: {
 			getHeaderProperties(): any {
