@@ -28,6 +28,7 @@
   "dependencies": {
     "@reactivex/rxjs": "5.0.0-beta.6",
     "@types/node": "^7.0.0",
+    "ansi-regex": "^2.1.1",
     "dgrid": "^1.0.0",
     "dojo-actions": "^2.0.0-alpha.9",
     "dojo-app": "^2.0.0-alpha.9",

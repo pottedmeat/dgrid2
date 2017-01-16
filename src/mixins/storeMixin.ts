@@ -9,6 +9,7 @@ import { ComposeFactory } from 'dojo-compose/compose';
 import { QueryStore } from 'dojo-stores/store/mixins/createQueryTransformMixin';
 import { ObservableStore } from 'dojo-stores/store/mixins/createObservableStoreMixin';
 import { QueryTransformResult } from 'dojo-stores/store/createQueryTransformResult';
+import createRange from 'dojo-stores/query/createStoreRange';
 
 type Collection = QueryStore<any, ObservableStore<any, any, any>> | QueryTransformResult<any, ObservableStore<any, any, any>>;
 
@@ -59,19 +60,20 @@ const storeMixin: StoreMixinFactory = <any> {
 				};
 			})
 			.override({
-				getData(this: { state: DgridBodyState & StoreMixinState }, properties: HasCollection & HasSort) {
+				getData(properties: DgridBodyProperties) {
 					const {
 						dataRangeStart,
 						dataRangeCount,
-					} = this.state;
-
-					const {
 						collection,
 						sort
 					} = properties;
 
-					let store = collection;
+					let base = <QueryStore<any, ObservableStore<any, any, any>>> collection;
+					if ((<any> base)['source']) {
+						base = (<any> base)['source'];
+					}
 
+					let store = collection;
 					if (store) {
 						if (dataRangeStart || dataRangeStart === 0) {
 							if (dataRangeCount > 0) {
@@ -94,7 +96,15 @@ const storeMixin: StoreMixinFactory = <any> {
 
 						this.state.store = store;
 
-						return store.fetch();
+						const promise = store.fetch();
+						promise.then(() => {
+							base.fetch(createRange(0, 0)).totalLength.then((total) => {
+								properties.onDataLoadEvent({
+									total
+								});
+							});
+						});
+						return promise;
 					}
 
 					return new Promise((resolve) => {

@@ -9,15 +9,21 @@ import { Column } from '../models/createColumn';
 
 export interface DgridHeaderViewProperties extends WidgetProperties {}
 
-export interface DgridHeaderViewFactory extends ComposeFactory<Widget<DgridHeaderViewProperties>, WidgetOptions<WidgetState, DgridHeaderViewProperties>> {}
+export type DgridHeader = Widget<DgridHeaderViewProperties>;
 
-function onClick(event: MouseEvent) {
-	const properties = <HasSortEvent> this.properties;
+export interface DgridHeaderViewFactory extends ComposeFactory<DgridHeader, WidgetOptions<WidgetState, DgridHeaderViewProperties>> {}
+
+function onClick(this: DgridHeader, event: MouseEvent) {
+	const {
+		properties: {
+			onSortEvent
+		}
+	} = this;
 
 	let target = <SortTarget> event.target;
 	while (target.parentElement) {
 		if (target.sortable) {
-			properties.onSortEvent(<SortEvent> {
+			onSortEvent(<SortEvent> {
 				event: event,
 				target: target
 			});

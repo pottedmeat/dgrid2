@@ -2,6 +2,7 @@ import createProjector, { Projector } from 'dojo-widgets/createProjector';
 import { v, w } from 'dojo-widgets/d';
 import createDgrid from './createDgrid';
 import storeMixin from './mixins/storeMixin';
+import paginationMixin from './mixins/paginationMixin';
 import createCellView from './nodes/createCellView';
 import createInMemoryStorage from 'dojo-stores/storage/createInMemoryStorage';
 import { createQueryStore } from 'dojo-stores/store/mixins/createQueryTransformMixin';
@@ -46,30 +47,32 @@ const store = createQueryStore({
 	data: data
 });
 
-const createCustomDgrid = createDgrid.mixin({
-	initialize(instance) {
-		instance.registry.define('dgrid-cell-view', createCellView.after('getChildrenNodes', function (children: string[]) {
-			const {
-				column
-			} = this.properties;
+const createCustomDgrid = createDgrid
+	.mixin(paginationMixin)
+	.mixin({
+		initialize(instance) {
+			instance.registry.define('dgrid-cell-view', createCellView.after('getChildrenNodes', function (children: string[]) {
+				const {
+					column
+				} = this.properties;
 
-			if (column.id === 'age') {
-				children.push(' years old');
-			}
-			else if (column.id === 'gender') {
-				children.unshift('is a ');
-			}
-			else if (column.id === 'location') {
-				children.unshift('located at ');
-			}
-			else if (column.id === 'delete') {
-				children.push('🗑');
-			}
+				if (column.id === 'age') {
+					children.push(' years old');
+				}
+				else if (column.id === 'gender') {
+					children.unshift('is a ');
+				}
+				else if (column.id === 'location') {
+					children.unshift('located at ');
+				}
+				else if (column.id === 'delete') {
+					children.push('🗑');
+				}
 
-			return children;
-		}));
-	}
-});
+				return children;
+			}));
+		}
+	});
 
 const columns = [
 	{

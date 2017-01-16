@@ -15,6 +15,7 @@ import createRow from './nodes/createRow';
 import createRowView from './nodes/createRowView';
 import createCell from './nodes/createCell';
 import createCellView from './nodes/createCellView';
+import createFooter from './nodes/createFooter';
 import { w, registry } from 'dojo-widgets/d';
 import { getScrollbarSize } from './util';
 import delegatingFactoryRegistryMixin from './mixins/delegatingFactoryRegistryMixin';
@@ -31,6 +32,7 @@ registry.define('dgrid-row', createRow);
 registry.define('dgrid-row-view', createRowView);
 registry.define('dgrid-cell', createCell);
 registry.define('dgrid-cell-view', createCellView);
+registry.define('dgrid-footer', createFooter);
 
 export interface SortTarget extends HTMLElement {
 	sortable: boolean;
@@ -43,6 +45,10 @@ export interface SortTarget extends HTMLElement {
 export interface SortEvent {
 	event: (MouseEvent | KeyboardEvent);
 	target: SortTarget;
+}
+
+export interface DataLoadEvent {
+	total: number;
 }
 
 export interface HasColumns {
@@ -76,14 +82,29 @@ export interface HasScrollbarSize {
 	};
 }
 
-export interface DgridState extends WidgetState, HasColumns, HasSort, HasScrollbarSize { }
+export interface HasDataRange {
+	dataRangeStart: number;
+	dataRangeCount: number;
+}
+
+export interface HasDataTotal {
+	dataTotal: number;
+}
+
+export interface HasDataLoadEvent {
+	onDataLoadEvent: (event: DataLoadEvent) => void;
+}
+
+export interface DgridState extends WidgetState, HasColumns, HasSort, HasScrollbarSize, HasDataRange, HasDataTotal { }
 
 export interface DgridProperties extends WidgetProperties, HasColumns, HasSort { }
 
 export interface DgridOptions extends WidgetOptions<DgridState, DgridProperties> { }
 
-function onSort(this: Widget<DgridProperties>, event: SortEvent) {
-	const state = <DgridState> this.state;
+export type Dgrid = Widget<DgridProperties>;
+
+function onSort(this: Dgrid & { state: DgridState }, event: SortEvent) {
+	const state = this.state;
 	const sort = state.sort;
 
 	const target = event.target;
@@ -97,49 +118,84 @@ function onSort(this: Widget<DgridProperties>, event: SortEvent) {
 	this.invalidate();
 }
 
+function onDataLoad(this: Widget<DgridProperties> & { state: DgridState }, event: DataLoadEvent) {
+	const state = this.state;
+	state.dataTotal = event.total;
+	this.invalidate();
+}
+
 const createDgrid = createWidgetBase
 	.mixin(delegatingFactoryRegistryMixin)
 	.mixin({
 		mixin: {
 			getHeaderProperties(): any {
 				const {
-					state,
-					properties,
-					registry
+					registry,
+					state: {
+						scrollbarSize,
+						sort
+					},
+					properties: {
+						columns
+					}
 				} = this;
 
 				return {
 					registry,
-					scrollbarSize: state.scrollbarSize,
-					columns: properties.columns,
-					sort: state.sort,
+					scrollbarSize,
+					columns,
+					sort,
 					onSortEvent: onSort.bind(this)
 				};
 			},
 			getHeaderScrollProperties(): any {
 				const {
-					state,
-					registry
+					registry,
+					state: {
+						scrollbarSize
+					}
 				} = this;
 
 				return {
 					registry,
-					scrollbarSize: state.scrollbarSize
+					scrollbarSize
 				};
 			},
 			getBodyProperties(): any {
 				const {
-					state,
-					properties,
-					registry
+					registry,
+					state: {
+						sort,
+						dataRangeStart,
+						dataRangeCount,
+						dataTotal
+					},
+					properties: {
+						data,
+						columns,
+						idProperty
+					}
 				} = this;
 
 				return {
 					registry,
-					columns: properties.columns,
-					sort: state.sort,
-					data: properties.data,
-					idProperty: properties.idProperty
+					sort: sort,
+					data: data,
+					dataRangeStart,
+					dataRangeCount,
+					dataTotal,
+					onDataLoadEvent: onDataLoad.bind(this),
+					columns: columns,
+					idProperty
+				};
+			},
+			getFooterProperties(): any {
+				const {
+					registry
+				} = this;
+
+				return {
+					registry
 				};
 			}
 		}
@@ -185,7 +241,8 @@ const createDgrid = createWidgetBase
 			return [
 				w('dgrid-header', this.getHeaderProperties()),
 				w('dgrid-header-scroll', this.getHeaderScrollProperties()),
-				w('dgrid-body', this.getBodyProperties())
+				w('dgrid-body', this.getBodyProperties()),
+				w('dgrid-footer', this.getFooterProperties())
 			];
 		}
 	});

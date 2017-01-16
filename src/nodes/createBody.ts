@@ -1,5 +1,5 @@
 import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { HasSort } from '../createDgrid';
+import { HasSort, HasDataLoadEvent, HasDataRange } from '../createDgrid';
 import { w, v } from 'dojo-widgets/d';
 import delegatingFactoryRegistryMixin from '../mixins/delegatingFactoryRegistryMixin';
 import Promise from 'dojo-shim/Promise';
@@ -11,16 +11,13 @@ export interface HasData {
 	idProperty?: string;
 };
 
-export interface HasDataRange {
-	dataRangeStart: number;
-	dataRangeCount: number;
-}
+export interface DgridBodyProperties extends WidgetProperties, HasData, HasDataRange, HasDataLoadEvent, HasSort {}
 
-export interface DgridBodyProperties extends WidgetProperties, HasData, HasSort {}
-
-export interface DgridBodyState extends WidgetState, HasDataRange {}
+export interface DgridBodyState extends WidgetState {}
 
 export interface DgridBodyFactory extends ComposeFactory<Widget<DgridBodyProperties>, WidgetOptions<DgridBodyState, DgridBodyProperties>> {}
+
+const DgridBodyPropertyKeys: Array<keyof (HasSort & HasDataRange)> = [ 'sort', 'dataRangeStart', 'dataRangeCount' ];
 
 export default createWidgetBase
 	.mixin(delegatingFactoryRegistryMixin)
@@ -44,15 +41,16 @@ export default createWidgetBase
 			},
 			getData(properties: DgridBodyProperties): Promise<any[]> {
 				return new Promise((resolve) => {
-					const {
-						dataRangeStart,
-						dataRangeCount
-					} = this.state;
-
 					let {
 						data,
+						dataRangeStart,
+						dataRangeCount,
 						sort
 					} = properties;
+
+					properties.onDataLoadEvent({
+						total: data.length
+					});
 
 					if (dataRangeStart || dataRangeStart === 0) {
 						if (dataRangeCount > 0) {
@@ -81,6 +79,7 @@ export default createWidgetBase
 							return 0;
 						});
 					}
+
 					resolve(data);
 				});
 			}
@@ -94,8 +93,10 @@ export default createWidgetBase
 			if (!previousProperties.data && newProperties.data) {
 				changedPropertyKeys.push('data');
 			}
-			if (previousProperties.sort !== newProperties.sort) {
-				changedPropertyKeys.push('sort');
+			for (const key of DgridBodyPropertyKeys) {
+				if (previousProperties[key] !== newProperties[key]) {
+					changedPropertyKeys.push(key);
+				}
 			}
 			return changedPropertyKeys;
 		},
