@@ -1,14 +1,14 @@
-import createStateful from 'dojo-compose/bases/createStateful';
-import FactoryRegistry from 'dojo-widgets/FactoryRegistry';
-import WeakMap from 'dojo-shim/WeakMap';
-import { registry } from 'dojo-widgets/d';
+import createStateful from '@dojo/compose/bases/createStateful';
+import FactoryRegistry from '@dojo/widgets/FactoryRegistry';
+import WeakMap from '@dojo/shim/WeakMap';
+import { registry } from '@dojo/widgets/d';
 import DelegatingFactoryRegistry from '../widgets/DelegatingFactoryRegistry';
 import {
 	Widget,
 	WidgetOptions,
 	WidgetState,
 	FactoryRegistryInterface, WidgetProperties
-} from 'dojo-widgets/interfaces';
+} from '@dojo/widgets/interfaces';
 
 const factoryRegistryWeakMap = new WeakMap<Widget<WidgetProperties>, FactoryRegistryInterface>();
 

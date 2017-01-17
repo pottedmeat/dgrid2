@@ -1,6 +1,6 @@
-import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { v } from 'dojo-widgets/d';
-import { DNode, WidgetProperties, Widget, WidgetState } from 'dojo-widgets/interfaces';
+import createWidgetBase from '@dojo/widgets/createWidgetBase';
+import { v } from '@dojo/widgets/d';
+import { DNode, WidgetProperties, Widget, WidgetState } from '@dojo/widgets/interfaces';
 import { PagingEvent, HasPagination } from '../mixins/paginationMixin';
 import { HasDataTotal } from '../createDgrid';
 
@@ -118,7 +118,7 @@ const createPaginationControls = createWidgetBase
 				} = this;
 
 				const paginationStart = ((currentPage - 1) * rowsPerPage) + 1;
-				const paginationEnd = (paginationStart + rowsPerPage);
+				const paginationEnd = Math.min(dataTotal, (paginationStart + rowsPerPage));
 
 				return `${paginationStart} - ${paginationEnd} of ${dataTotal} results`;
 			}

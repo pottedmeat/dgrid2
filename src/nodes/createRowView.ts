@@ -1,9 +1,9 @@
-import createWidgetBase from 'dojo-widgets/createWidgetBase';
+import createWidgetBase from '@dojo/widgets/createWidgetBase';
 import { HasColumns } from '../createDgrid';
-import { v, w } from 'dojo-widgets/d';
+import { v, w } from '@dojo/widgets/d';
 import delegatingFactoryRegistryMixin from '../mixins/delegatingFactoryRegistryMixin';
-import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
-import { ComposeFactory } from 'dojo-compose/compose';
+import { WidgetProperties, Widget, WidgetOptions, WidgetState } from '@dojo/widgets/interfaces';
+import { ComposeFactory } from '@dojo/compose/compose';
 import { Column } from '../models/createColumn';
 
 export interface DgridRowViewProperties extends WidgetProperties {}

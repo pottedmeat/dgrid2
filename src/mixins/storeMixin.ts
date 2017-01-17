@@ -1,15 +1,15 @@
-import { Widget, WidgetOptions, WidgetState, WidgetProperties } from 'dojo-widgets/interfaces';
+import { Widget, WidgetOptions, WidgetState, WidgetProperties } from '@dojo/widgets/interfaces';
 import { DgridProperties } from '../createDgrid';
-import createSort from 'dojo-stores/query/createSort';
+import createSort from '@dojo/stores/query/createSort';
 import { DgridBodyFactory, DgridBodyProperties } from '../nodes/createBody';
 import { DgridCellFactory } from '../nodes/createCell';
 import { DgridRowFactory } from '../nodes/createRow';
 import { DgridRowViewFactory } from '../nodes/createRowView';
-import { ComposeFactory } from 'dojo-compose/compose';
-import { QueryStore } from 'dojo-stores/store/mixins/createQueryTransformMixin';
-import { ObservableStore } from 'dojo-stores/store/mixins/createObservableStoreMixin';
-import { QueryTransformResult } from 'dojo-stores/store/createQueryTransformResult';
-import createRange from 'dojo-stores/query/createStoreRange';
+import { ComposeFactory } from '@dojo/compose/compose';
+import { QueryStore } from '@dojo/stores/store/mixins/createQueryTransformMixin';
+import { ObservableStore } from '@dojo/stores/store/mixins/createObservableStoreMixin';
+import { QueryTransformResult } from '@dojo/stores/store/createQueryTransformResult';
+import createRange from '@dojo/stores/query/createStoreRange';
 
 type Collection = QueryStore<any, ObservableStore<any, any, any>> | QueryTransformResult<any, ObservableStore<any, any, any>>;
 

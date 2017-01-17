@@ -1,9 +1,9 @@
-import { Widget, WidgetOptions, WidgetState, WidgetProperties } from 'dojo-widgets/interfaces';
+import { Widget, WidgetOptions, WidgetState, WidgetProperties } from '@dojo/widgets/interfaces';
 import { Column } from './models/createColumn';
 import createColumns  from './models/createColumns';
 import { Sort } from './models/createSort';
 import createSortArray from './models/createSortArray';
-import createWidgetBase from 'dojo-widgets/createWidgetBase';
+import createWidgetBase from '@dojo/widgets/createWidgetBase';
 import createHeader from './nodes/createHeader';
 import createHeaderView from './nodes/createHeaderView';
 import createHeaderCell from './nodes/createHeaderCell';
@@ -16,10 +16,10 @@ import createRowView from './nodes/createRowView';
 import createCell from './nodes/createCell';
 import createCellView from './nodes/createCellView';
 import createFooter from './nodes/createFooter';
-import { w, registry } from 'dojo-widgets/d';
+import { w, registry } from '@dojo/widgets/d';
 import { getScrollbarSize } from './util';
 import delegatingFactoryRegistryMixin from './mixins/delegatingFactoryRegistryMixin';
-import { assign } from 'dojo-core/lang';
+import { assign } from '@dojo/core/lang';
 
 registry.define('dgrid-header', createHeader);
 registry.define('dgrid-header-view', createHeaderView);

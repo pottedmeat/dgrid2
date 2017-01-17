@@ -1,4 +1,4 @@
-import { assign } from 'dojo-core/lang';
+import { assign } from '@dojo/core/lang';
 
 export interface Column {
 	id: string;

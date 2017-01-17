@@ -1,8 +1,8 @@
-import { ComposeFactory } from 'dojo-compose/compose';
-import { Widget, WidgetProperties, WidgetOptions, WidgetState, DNode } from 'dojo-widgets/interfaces';
+import { ComposeFactory } from '@dojo/compose/compose';
+import { Widget, WidgetProperties, WidgetOptions, WidgetState, DNode } from '@dojo/widgets/interfaces';
 import { DgridProperties, HasDataTotal, Dgrid, DgridState } from '../createDgrid';
 import { DgridFooterFactory } from '../nodes/createFooter';
-import { registry, w } from 'dojo-widgets/d';
+import { registry, w } from '@dojo/widgets/d';
 import createPaginationControls from '../nodes/createPaginationControls';
 
 registry.define('dgrid-pagination-controls', createPaginationControls);

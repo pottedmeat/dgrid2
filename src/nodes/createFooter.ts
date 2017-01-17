@@ -1,6 +1,6 @@
-import createWidgetBase from 'dojo-widgets/createWidgetBase';
-import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
-import { ComposeFactory } from 'dojo-compose/compose';
+import createWidgetBase from '@dojo/widgets/createWidgetBase';
+import { WidgetProperties, Widget, WidgetOptions, WidgetState } from '@dojo/widgets/interfaces';
+import { ComposeFactory } from '@dojo/compose/compose';
 import delegatingFactoryRegistryMixin from '../mixins/delegatingFactoryRegistryMixin';
 
 export interface DgridFooterProperties extends WidgetProperties {}

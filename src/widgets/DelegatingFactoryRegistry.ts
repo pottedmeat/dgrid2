@@ -1,9 +1,9 @@
-import FactoryRegistry from 'dojo-widgets/FactoryRegistry';
-import Promise from 'dojo-shim/Promise';
+import FactoryRegistry from '@dojo/widgets/FactoryRegistry';
+import Promise from '@dojo/shim/Promise';
 import {
 	FactoryRegistryInterface,
 	WidgetBaseFactory, FactoryRegistryItem
-} from 'dojo-widgets/interfaces';
+} from '@dojo/widgets/interfaces';
 
 export default class DelegatingFactoryRegistry extends FactoryRegistry {
 	protected parent: FactoryRegistryInterface;

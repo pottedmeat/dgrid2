@@ -1,10 +1,10 @@
-import createWidgetBase from 'dojo-widgets/createWidgetBase';
+import createWidgetBase from '@dojo/widgets/createWidgetBase';
 import { HasColumns, HasSort, SortTarget, SortEvent } from '../createDgrid';
-import { v, w } from 'dojo-widgets/d';
+import { v, w } from '@dojo/widgets/d';
 import delegatingFactoryRegistryMixin from '../mixins/delegatingFactoryRegistryMixin';
 import { sortedColumn } from '../util';
-import { WidgetProperties, Widget, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
-import { ComposeFactory } from 'dojo-compose/compose';
+import { WidgetProperties, Widget, WidgetOptions, WidgetState } from '@dojo/widgets/interfaces';
+import { ComposeFactory } from '@dojo/compose/compose';
 import { Column } from '../models/createColumn';
 
 export interface DgridHeaderViewProperties extends WidgetProperties {}

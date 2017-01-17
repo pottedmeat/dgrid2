@@ -1,10 +1,10 @@
-import createWidgetBase from 'dojo-widgets/createWidgetBase';
+import createWidgetBase from '@dojo/widgets/createWidgetBase';
 import { HasSort, HasDataLoadEvent, HasDataRange } from '../createDgrid';
-import { w, v } from 'dojo-widgets/d';
+import { w, v } from '@dojo/widgets/d';
 import delegatingFactoryRegistryMixin from '../mixins/delegatingFactoryRegistryMixin';
-import Promise from 'dojo-shim/Promise';
-import { ComposeFactory } from 'dojo-compose/compose';
-import { Widget, WidgetProperties, WidgetOptions, WidgetState } from 'dojo-widgets/interfaces';
+import Promise from '@dojo/shim/Promise';
+import { ComposeFactory } from '@dojo/compose/compose';
+import { Widget, WidgetProperties, WidgetOptions, WidgetState } from '@dojo/widgets/interfaces';
 
 export interface HasData {
 	data: any[];
