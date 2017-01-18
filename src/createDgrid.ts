@@ -218,6 +218,10 @@ const createDgrid = createWidgetBase
 				changedPropertyKeys.push('columns');
 			}
 			// use createSortArray to get a static representation of the sort for comparison
+			const sort = this.state.sort;
+			if (sort) {
+				newProperties.sort = sort;
+			}
 			if (newProperties.sort) {
 				newProperties.sort = createSortArray(newProperties.sort);
 				if (previousProperties.sort !== newProperties.sort) {

@@ -23,6 +23,7 @@ export default function createSort(sort: Sort): TokenizedSort {
 	}
 	const key = keyValues.join(',');
 	if (!sortMap.has(key)) {
+		console.log(sortMap.size, key);
 		sortMap.set(key, assign({
 			token: sortMap.size
 		}, sort));

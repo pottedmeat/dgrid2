@@ -1,18 +1,24 @@
 import { ComposeFactory } from '@dojo/compose/compose';
 import { Widget, WidgetProperties, WidgetOptions, WidgetState, DNode } from '@dojo/widgets/interfaces';
-import { DgridProperties, HasDataTotal, Dgrid, DgridState } from '../createDgrid';
+import {DgridProperties, HasDataTotal, Dgrid, DgridState, HasSort} from '../createDgrid';
 import { DgridFooterFactory } from '../nodes/createFooter';
 import { registry, w } from '@dojo/widgets/d';
 import createPaginationControls from '../nodes/createPaginationControls';
+import {HasCollection} from "./storeMixin";
 
 registry.define('dgrid-pagination-controls', createPaginationControls);
 
 export interface PagingEvent {
+	page: number;
 	start: number;
 	count: number;
 }
 
-export interface HasPagination {
+export interface HasPage {
+	page: number;
+}
+
+export interface HasPagination extends HasPage {
 	pagingLinkCount: number;
 	rowsPerPage: number;
 	onPagingEvent: (event: PagingEvent) => void;
@@ -24,18 +30,20 @@ export type PaginationMixin = Widget<PaginationMixinProperties>;
 
 export interface PaginationMixinFactory extends ComposeFactory<PaginationMixin, WidgetOptions<WidgetState, PaginationMixinProperties>> {}
 
-function onPaging(this: Dgrid & { state: DgridState }, event: PagingEvent) {
+function onPaging(this: Dgrid & { state: DgridState & HasPage }, event: PagingEvent) {
 	this.state.dataRangeStart = event.start;
 	this.state.dataRangeCount = event.count;
+	this.state.page = event.page;
 	this.invalidate();
 }
 
-const paginationPropertyKeys: Array<keyof (HasPagination & HasDataTotal)> = [ 'pagingLinkCount', 'rowsPerPage', 'onPagingEvent', 'dataTotal' ];
+const paginationPropertyKeys: Array<keyof (HasPagination & HasDataTotal)> = [ 'page', 'pagingLinkCount', 'rowsPerPage', 'onPagingEvent', 'dataTotal' ];
 
 const paginationMixin: PaginationMixinFactory = <any> {
 	aspectAdvice: {
 		before: {
 			setProperties<P extends HasPagination>(this: Widget<P> & { state: DgridState }, properties: P) {
+				properties.page = (properties.page || 1);
 				properties.pagingLinkCount = (properties.pagingLinkCount || 2);
 				properties.rowsPerPage = (properties.rowsPerPage || 10);
 				properties.onPagingEvent = onPaging.bind(this);
@@ -50,9 +58,25 @@ const paginationMixin: PaginationMixinFactory = <any> {
 				return arguments;
 			}
 		},
+		around: {
+			diffProperties<P extends HasPagination & HasSort>(diffProperties: () => string[]) {
+				return function(previousProperties: P, newProperties: P) {
+					const changedPropertyKeys = diffProperties.apply(this, arguments);
+					if (changedPropertyKeys.indexOf('sort') !== -1) {
+						// change page to 1 when a new sort is assigned
+						newProperties.page = 1;
+						changedPropertyKeys.push('page');
+					}
+					else if (previousProperties.page !== newProperties.page) {
+						changedPropertyKeys.push('page');
+					}
+					return changedPropertyKeys;
+				};
+			}
+		},
 		after: {
-			getFooterProperties<P extends HasPagination & HasDataTotal>(this: Widget<P> & { state: DgridState}, properties: P) {
-				// TODO: Detect when sort/data change
+			getFooterProperties<P extends HasPagination & HasDataTotal>(this: Widget<P> & { state: DgridState & HasPage }, properties: P) {
+				properties.page = this.state.page;
 				properties.pagingLinkCount = this.properties.pagingLinkCount;
 				properties.rowsPerPage = this.properties.rowsPerPage;
 				properties.dataTotal = this.state.dataTotal;
@@ -81,6 +105,7 @@ const paginationMixin: PaginationMixinFactory = <any> {
 			.after('getChildrenNodes', function (this: Widget<HasPagination & HasDataTotal>, children: DNode[]) {
 				const {
 					properties: {
+						page,
 						dataTotal,
 						pagingLinkCount,
 						rowsPerPage,
@@ -91,6 +116,7 @@ const paginationMixin: PaginationMixinFactory = <any> {
 				if (dataTotal) {
 					children.push(
 						w('dgrid-pagination-controls', {
+							page,
 							registry,
 							dataTotal,
 							pagingLinkCount,
