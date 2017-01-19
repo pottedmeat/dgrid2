@@ -1,10 +1,9 @@
 import { ComposeFactory } from '@dojo/compose/compose';
 import { Widget, WidgetProperties, WidgetOptions, WidgetState, DNode } from '@dojo/widgets/interfaces';
-import {DgridProperties, HasDataTotal, Dgrid, DgridState, HasSort} from '../createDgrid';
+import { DgridProperties, HasDataTotal, Dgrid, DgridState, HasSort } from '../createDgrid';
 import { DgridFooterFactory } from '../nodes/createFooter';
 import { registry, w } from '@dojo/widgets/d';
 import createPaginationControls from '../nodes/createPaginationControls';
-import {HasCollection} from "./storeMixin";
 
 registry.define('dgrid-pagination-controls', createPaginationControls);
 
@@ -43,16 +42,22 @@ const paginationMixin: PaginationMixinFactory = <any> {
 	aspectAdvice: {
 		before: {
 			setProperties<P extends HasPagination>(this: Widget<P> & { state: DgridState }, properties: P) {
-				properties.page = (properties.page || 1);
-				properties.pagingLinkCount = (properties.pagingLinkCount || 2);
-				properties.rowsPerPage = (properties.rowsPerPage || 10);
-				properties.onPagingEvent = onPaging.bind(this);
 				const {
 					state: {
 						dataRangeStart = 0,
-						dataRangeCount = properties.rowsPerPage
+						dataRangeCount = 10
+					},
+					properties: {
+						page = 1,
+						pagingLinkCount = 2,
+						rowsPerPage = 10,
+						onPagingEvent = onPaging.bind(this)
 					}
 				} = this;
+				properties.page = page;
+				properties.pagingLinkCount = pagingLinkCount;
+				properties.rowsPerPage = rowsPerPage;
+				properties.onPagingEvent = onPagingEvent;
 				this.state.dataRangeStart = dataRangeStart;
 				this.state.dataRangeCount = dataRangeCount;
 				return arguments;

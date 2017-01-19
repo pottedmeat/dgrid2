@@ -1,6 +1,6 @@
 import createWidgetBase from '@dojo/widgets/createWidgetBase';
 import { v } from '@dojo/widgets/d';
-import { DNode, WidgetProperties, Widget, WidgetState } from '@dojo/widgets/interfaces';
+import { DNode, WidgetProperties, Widget } from '@dojo/widgets/interfaces';
 import { PagingEvent, HasPagination } from '../mixins/paginationMixin';
 import { HasDataTotal } from '../createDgrid';
 
@@ -10,6 +10,7 @@ export type DgridPaginationControls = Widget<DgridPaginationControlsProperties>;
 
 function createPageLink(page: number, label: string, disabled: boolean, tabindex = '0'): DNode {
 	return v('span.dgrid-page-link', {
+		key: ('' + page),
 		classes: {
 			'dgrid-page-disabled': disabled
 		},
@@ -28,7 +29,7 @@ export interface PagingTarget extends HTMLElement {
 	parentElement: PagingTarget;
 }
 
-function onClick(this: DgridPaginationControls & { state: DgridPaginationState }, event: MouseEvent) {
+function onClick(this: DgridPaginationControls, event: MouseEvent) {
 	const {
 		properties: {
 			rowsPerPage,
