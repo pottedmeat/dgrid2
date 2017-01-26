@@ -1,5 +1,5 @@
 (<any> require).config({
-	baseUrl: '../../',
+	baseUrl: '../../../',
 	packages: [
 		{ name: 'src', location: '_build/src' },
 		{ name: '@dojo', location: 'node_modules/@dojo' },
@@ -7,4 +7,4 @@
 	]
 });
 
-(<any> require)([ 'src/main' ], function () {});
+(<any> require)([ 'src/examples/main' ], function () {});

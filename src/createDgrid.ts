@@ -1,253 +1,162 @@
-import { Widget, WidgetOptions, WidgetState, WidgetProperties } from '@dojo/widgets/interfaces';
-import { Column } from './models/createColumn';
-import createColumns  from './models/createColumns';
-import { Sort } from './models/createSort';
-import createSortArray from './models/createSortArray';
+import { VNodeProperties } from '@dojo/interfaces/vdom';
+import { Widget, WidgetMixin, WidgetProperties, WidgetFactory, DNode, PropertiesChangeEvent } from '@dojo/widgets/interfaces';
 import createWidgetBase from '@dojo/widgets/createWidgetBase';
-import createHeader from './nodes/createHeader';
-import createHeaderView from './nodes/createHeaderView';
-import createHeaderCell from './nodes/createHeaderCell';
-import createSortArrow from './nodes/createSortArrow';
-import createHeaderCellView from './nodes/createHeaderCellView';
-import createHeaderScroll from './nodes/createHeaderScroll';
-import createBody from './nodes/createBody';
-import createRow from './nodes/createRow';
-import createRowView from './nodes/createRowView';
-import createCell from './nodes/createCell';
-import createCellView from './nodes/createCellView';
-import createFooter from './nodes/createFooter';
-import { w, registry } from '@dojo/widgets/d';
-import { getScrollbarSize } from './util';
-import delegatingFactoryRegistryMixin from './mixins/delegatingFactoryRegistryMixin';
-import { assign } from '@dojo/core/lang';
+import { includes } from '@dojo/shim/array';
+import { w } from '@dojo/widgets/d';
+import { FactoryRegistryInterface } from '@dojo/widgets/interfaces';
+import FactoryRegistry from '@dojo/widgets/FactoryRegistry';
 
-registry.define('dgrid-header', createHeader);
-registry.define('dgrid-header-view', createHeaderView);
-registry.define('dgrid-header-cell', createHeaderCell);
-registry.define('dgrid-sort-arrow', createSortArrow);
-registry.define('dgrid-header-cell-view', createHeaderCellView);
-registry.define('dgrid-header-scroll', createHeaderScroll);
-registry.define('dgrid-body', createBody);
-registry.define('dgrid-row', createRow);
-registry.define('dgrid-row-view', createRowView);
-registry.define('dgrid-cell', createCell);
-registry.define('dgrid-cell-view', createCellView);
-registry.define('dgrid-footer', createFooter);
+import createBody from './createBody';
+import createRow from './createRow';
+import createRowView from './createRowView';
+import createCell from './createCell';
+import createHeader from './createHeader';
+import createHeaderCell from './createHeaderCell';
+import createFooter from './createFooter';
 
-export interface SortTarget extends HTMLElement {
-	sortable: boolean;
-	field: string;
+function createRegistry(props: any) {
+	const { customCell } = props;
+	const registry = new FactoryRegistry();
+	registry.define('dgrid-body', createBody);
+	registry.define('dgrid-row', createRow);
+	registry.define('dgrid-row-view', createRowView);
+	registry.define('dgrid-cell', customCell || createCell);
+	registry.define('dgrid-header', createHeader);
+	registry.define('dgrid-header-cell', createHeaderCell);
+	registry.define('dgrid-footer', createFooter);
+	return registry;
+}
+
+export interface Column {
+	id: string;
+	label: string;
+	field?: string;
+	sortable?: boolean;
+	color?: string;
+	renderer?: (value: string) => string;
+}
+
+export interface TreeProperties {
+	onCollapseRequest(grid: Dgrid, item: any): void;
+	onExpandRequest(grid: Dgrid, item: any): void;
+}
+
+export interface ItemProperties {
+	id: string;
+	expandedLevel?: number;
+	isExpanded?: boolean;
+	canExpand?: boolean;
+	data: any;
+}
+
+export interface SortDetail {
 	columnId: string;
-	parentElement: SortTarget;
-	getAttribute(name: 'field' | 'columnId'): string | null;
+	descending: boolean;
 }
 
-export interface SortEvent {
-	event: (MouseEvent | KeyboardEvent);
-	target: SortTarget;
+export interface RangeDetails {
+	rangeStart?: number;
+	rangeCount?: number;
 }
 
-export interface DataLoadEvent {
-	total: number;
+export interface DataProperties {
+	items: ItemProperties[];
+	totalLength?: number;
+	rangeStart?: number;
+	rangeCount?: number;
+	sortDetails?: SortDetail[];
+	onSortRequest(sortDetail: SortDetail): void;
+	onRangeRequest(rangeDetails: RangeDetails): void;
 }
 
-export interface HasColumns {
+export interface PaginationDetails {
+	pageNumber: number;
+}
+
+export interface PaginationProperties {
+	itemsPerPage: number;
+	onPaginationRequest(paginationDetails: PaginationDetails): void;
+}
+
+export interface DgridProperties extends WidgetProperties {
 	columns: Column[];
+	customRow?: any;
+	customCell?: any;
+	data: DataProperties;
+	tree?: TreeProperties;
+	pagination?: PaginationProperties;
 }
 
-export interface HasColumn {
-	column: Column;
+export interface DgridMixin extends WidgetMixin<WidgetProperties> {
 }
 
-export interface HasSort {
-	sort?: Sort[];
-}
+export type Dgrid = DgridMixin & Widget<DgridProperties>
 
-export interface HasItem {
-	item: any;
-}
+export interface DgridFactory extends WidgetFactory<Dgrid, DgridProperties> { }
 
-export interface HasItemIdentifier {
-	itemIdentifier: string;
-}
-
-export interface HasSortEvent {
-	onSortEvent: (event: SortEvent) => void;
-}
-
-export interface HasScrollbarSize {
-	scrollbarSize: {
-		width: number;
-		height: number;
-	};
-}
-
-export interface HasDataRange {
-	dataRangeStart: number;
-	dataRangeCount: number;
-}
-
-export interface HasDataTotal {
-	dataTotal: number;
-}
-
-export interface HasDataLoadEvent {
-	onDataLoadEvent: (event: DataLoadEvent) => void;
-}
-
-export interface DgridState extends WidgetState, HasColumns, HasSort, HasScrollbarSize, HasDataRange, HasDataTotal { }
-
-export interface DgridProperties extends WidgetProperties, HasColumns, HasSort { }
-
-export interface DgridOptions extends WidgetOptions<DgridState, DgridProperties> { }
-
-export type Dgrid = Widget<DgridProperties>;
-
-function onSort(this: Dgrid & { state: DgridState }, event: SortEvent) {
-	const state = this.state;
-	const sort = state.sort;
-
-	const target = event.target;
-	const field = (target.getAttribute('field') || target.getAttribute('columnId'));
-	const currentSort = (sort && sort[0]);
-	let newSort: Sort[] = [{
-		property: field,
-		descending: !!(currentSort && currentSort.property === field && !currentSort.descending)
-	}];
-	state.sort = createSortArray(newSort);
-	this.invalidate();
-}
-
-function onDataLoad(this: Widget<DgridProperties> & { state: DgridState }, event: DataLoadEvent) {
-	const state = this.state;
-	state.dataTotal = event.total;
-	this.invalidate();
-}
-
-const createDgrid = createWidgetBase
-	.mixin(delegatingFactoryRegistryMixin)
+const createDgrid: DgridFactory = createWidgetBase
 	.mixin({
 		mixin: {
-			getHeaderProperties(): any {
-				const {
-					registry,
-					state: {
-						scrollbarSize,
-						sort
-					},
-					properties: {
-						columns
-					}
-				} = this;
-
-				return {
-					registry,
-					scrollbarSize,
-					columns,
-					sort,
-					onSortEvent: onSort.bind(this)
-				};
-			},
-			getHeaderScrollProperties(): any {
-				const {
-					registry,
-					state: {
-						scrollbarSize
-					}
-				} = this;
-
-				return {
-					registry,
-					scrollbarSize
-				};
-			},
-			getBodyProperties(): any {
-				const {
-					registry,
-					state: {
-						sort,
-						dataRangeStart,
-						dataRangeCount,
-						dataTotal
-					},
-					properties: {
-						data,
-						columns,
-						idProperty
-					}
-				} = this;
-
-				return {
-					registry,
-					sort: sort,
-					data: data,
-					dataRangeStart,
-					dataRangeCount,
-					dataTotal,
-					onDataLoadEvent: onDataLoad.bind(this),
-					columns: columns,
-					idProperty
-				};
-			},
-			getFooterProperties(): any {
-				const {
-					registry
-				} = this;
-
-				return {
-					registry
-				};
-			}
-		}
-	})
-	.override(<DgridOptions> {
-		tagName: 'div',
-		classes: ['dgrid-widgets', 'dgrid', 'dgrid-grid'],
-		nodeAttributes: [
-			function () {
-				return {
-					role: 'grid'
-				};
-			}
-		],
-		diffProperties(previousProperties: DgridProperties, newProperties: DgridProperties): string[] {
-			const changedPropertyKeys: string[] = [];
-			// use createColumns to get a static representation of the columns for comparison
-			newProperties.columns = createColumns(newProperties.columns);
-			if (previousProperties.columns !== newProperties.columns) {
-				changedPropertyKeys.push('columns');
-			}
-			// use createSortArray to get a static representation of the sort for comparison
-			const sort = this.state.sort;
-			if (sort) {
-				newProperties.sort = sort;
-			}
-			if (newProperties.sort) {
-				newProperties.sort = createSortArray(newProperties.sort);
-				if (previousProperties.sort !== newProperties.sort) {
-					changedPropertyKeys.push('sort');
-					this.state.sort = newProperties.sort;
+			classes: ['dgrid-widgets', 'dgrid', 'dgrid-grid'],
+			nodeAttributes: [
+				function(this: Dgrid, attributes: VNodeProperties): VNodeProperties {
+					return { role: 'grid' };
 				}
-			}
-			return changedPropertyKeys;
-		},
-		assignProperties(this: Widget<WidgetProperties>, previousProperties: WidgetProperties, newProperties: WidgetProperties): WidgetProperties {
-			return assign({}, newProperties);
-		},
-		getChildrenNodes: function() {
-			const {
-				state
-			} = this;
-			if (!state.scrollbarSize) {
-				state.scrollbarSize = getScrollbarSize(document.createElement('div'));
-			}
+			],
+			getChildrenNodes(this: Dgrid): DNode[] {
+				const {
+					registry,
+					properties: {
+						columns,
+						data: {
+							items,
+							totalLength,
+							rangeStart,
+							rangeCount,
+							sortDetails,
+							onSortRequest
+						},
+						tree,
+						pagination: {
+							itemsPerPage = -1,
+							onPaginationRequest = false
+						} = {}
+					}
+				} = <{ registry?: FactoryRegistryInterface; properties: DgridProperties; }> this;
 
-			return [
-				w('dgrid-header', this.getHeaderProperties()),
-				w('dgrid-header-scroll', this.getHeaderScrollProperties()),
-				w('dgrid-body', this.getBodyProperties()),
-				w('dgrid-footer', this.getFooterProperties())
-			];
+				return [
+					w('dgrid-header', {
+						registry,
+						columns,
+						sortDetails,
+						onSortRequest: onSortRequest.bind(this)
+					}),
+					w('dgrid-body', {
+						registry,
+						columns,
+						items
+					}),
+					w('dgrid-footer', {
+						registry,
+						itemsPerPage,
+						totalLength,
+						rangeStart,
+						rangeCount,
+						onPaginationRequest: (onPaginationRequest && onPaginationRequest.bind(this))
+					})
+				];
+			}
+		},
+		initialize(instance: Dgrid) {
+			instance.registry = createRegistry(instance.properties);
+
+			instance.own(instance.on('properties:changed', (evt: PropertiesChangeEvent<Dgrid, DgridProperties>) => {
+				if (includes(evt.changedPropertyKeys, 'customCell')) {
+					instance.registry = createRegistry(evt.properties);
+				}
+
+				// TODO add changed of items per page
+			}));
 		}
 	});
 
