@@ -3,25 +3,25 @@ import {
 	ItemProperties,
 	SortDetail,
 	PaginationDetails,
-	RangeDetails, DataProperties, TreeProperties, PaginationProperties
+	RangeDetails,
+	DgridProperties
 } from './createDgrid';
 
 export interface ArrayDataProviderOptions {
 	items: any[];
 	idProperty?: string;
-	itemsPerPage?: number;
-	sortDetails?: SortDetail[];
+	properties?: DgridProperties;
 }
 
-export interface ArrayDataProvider {
-	properties: {
-		data: DataProperties;
-		tree: TreeProperties;
-		pagination: PaginationProperties;
-	};
-}
+function expand(items: any[], idProperty: string, expanded: { [key: string]: any }, until = Infinity, array = <ItemProperties[]> [], parents: any[] = [], parent: string = '', depth = 0) {
+	if (!parents.length) {
+		for (const item of items) {
+			if (item.parent) {
+				parents.push(item.parent);
+			}
+		}
+	}
 
-function expand(items: any[], idProperty: string, expanded: { [key: string]: any }, until = Infinity, array = <ItemProperties[]> [], parent: string = '', depth = 0) {
 	for (const item of items) {
 		if (array.length >= until) {
 			return array;
@@ -29,7 +29,7 @@ function expand(items: any[], idProperty: string, expanded: { [key: string]: any
 
 		const id = item[idProperty];
 		const isExpanded = expanded[id];
-		const canExpand = !!(item.children && item.children.length);
+		const canExpand = (parents.indexOf(id) !== -1);
 		if (parent) {
 			if (parent === item.parent) {
 				array.push({
@@ -40,35 +40,43 @@ function expand(items: any[], idProperty: string, expanded: { [key: string]: any
 					data: item
 				});
 				if (isExpanded) {
-					expand(items, idProperty, expanded, until, array, parent, depth);
+					expand(items, idProperty, expanded, until, array, parents, id, depth + 1);
 				}
 			}
 		}
 		else if (!item.parent) {
 			array.push({
 				id,
+				isExpanded,
 				canExpand,
 				data: item
 			});
+			if (isExpanded) {
+				expand(items, idProperty, expanded, until, array, parents, id, depth + 1);
+			}
 		}
 	}
 	return array;
 }
 
-function createArrayDataProvider(options: ArrayDataProviderOptions): ArrayDataProvider {
+function createArrayDataProvider(options: ArrayDataProviderOptions): ArrayDataProviderOptions {
 	let {
 		items,
 		idProperty = 'id',
-		itemsPerPage = -1
+		properties: {
+			data: {
+				sortDetails  = []
+			} = {},
+			pagination: {
+				itemsPerPage = -1
+			} = {}
+		} = {}
 	} = options;
 	const expanded: { [key: string]: any } = {};
 
-	const instance = <ArrayDataProvider> {
-		properties: {}
-	};
-	const properties = instance.properties;
+	const properties: DgridProperties = options.properties || <any> {};
 	properties.data = {
-		sortDetails: options.sortDetails,
+		sortDetails,
 		get items(): ItemProperties[] {
 			const {
 				sortDetails = []
@@ -103,7 +111,7 @@ function createArrayDataProvider(options: ArrayDataProviderOptions): ArrayDataPr
 			return itemProperties;
 		},
 		get totalLength() {
-			return items.length;
+			return expand(items, idProperty, expanded).length;
 		},
 		onSortRequest(this: Dgrid, sortDetail: SortDetail) {
 			properties.data.rangeStart = 0;
@@ -121,12 +129,8 @@ function createArrayDataProvider(options: ArrayDataProviderOptions): ArrayDataPr
 		properties.data.rangeCount = itemsPerPage;
 	}
 	properties.tree = {
-		onCollapseRequest(this: Dgrid, item: any) {
-			expanded[ item[ idProperty ] ] = false;
-			this.invalidate();
-		},
-		onExpandRequest(this: Dgrid, item: any) {
-			expanded[ item[ idProperty ] ] = true;
+		onToggleExpandedRequest(item: ItemProperties) {
+			expanded[item.id] = !expanded[item.id];
 			this.invalidate();
 		}
 	};
@@ -137,7 +141,7 @@ function createArrayDataProvider(options: ArrayDataProviderOptions): ArrayDataPr
 			this.invalidate();
 		}
 	};
-	return instance;
+	return options;
 }
 
 export default createArrayDataProvider;

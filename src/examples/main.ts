@@ -1,6 +1,6 @@
 import { createQueryStore } from '@dojo/stores/store/mixins/createQueryTransformMixin';
-import createProjectorMixin from '@dojo/widgets/mixins/createProjectorMixin';
-import createWidgetBase from '@dojo/widgets/createWidgetBase';
+import createProjectorMixin from '@dojo/widget-core/mixins/createProjectorMixin';
+import createWidgetBase from '@dojo/widget-core/createWidgetBase';
 import uuid from '@dojo/core/uuid';
 import createCustomCell from './createCustomCell';
 
@@ -41,10 +41,6 @@ function createData(count: number): any[] {
 
 let data = createData(250);
 
-const externalState = createQueryStore({
-	data: [...data]
-});
-
 const columns = [
 	{
 		id: 'age',
@@ -82,7 +78,15 @@ const columns = [
 	}
 ];
 
-const paginatedDataProvider = createArrayDataProvider({ items: data, itemsPerPage: 25 });
+const paginatedDataProvider = createArrayDataProvider({
+	items: data,
+	properties: {
+		columns: columns,
+		pagination: {
+			itemsPerPage: 25
+		}
+	}
+});
 
 const paginatedGrid = createDgrid.mixin(createProjectorMixin)({
 	properties: assign({
@@ -90,7 +94,12 @@ const paginatedGrid = createDgrid.mixin(createProjectorMixin)({
 	}, paginatedDataProvider.properties)
 });
 
-const dataProvider = createArrayDataProvider({ items: data });
+const dataProvider = createArrayDataProvider({
+	items: data,
+	properties: {
+		columns: columns
+	}
+});
 
 const dgrid = createDgrid.mixin(createProjectorMixin)({
 	properties: assign({
@@ -98,47 +107,5 @@ const dgrid = createDgrid.mixin(createProjectorMixin)({
 	}, dataProvider.properties)
 });
 
-let cellToggle = true;
-
-function onclick() {
-	const props = {
-		externalState,
-		columns,
-		customCell: cellToggle ? createCustomCell : false
-	};
-	cellToggle = !cellToggle;
-	dgrid.setProperties(props);
-}
-
-const button = createWidgetBase.mixin(createProjectorMixin).override({
-	tagName: 'button',
-	nodeAttributes: [
-		function(): any {
-			return { innerHTML: 'Use custom cell', classes: { button: true }, onclick };
-		}
-	]
-})();
-
-button.append();
 dgrid.append();
 paginatedGrid.append();
-
-setInterval(function() {
-	const record = data[Math.floor(Math.random() * data.length + 1)];
-	if (record) {
-		const id = record.id;
-		externalState.patch({ id, location: locations[Math.floor(Math.random() * locations.length)], color: 'aqua' });
-		setTimeout(() => {
-			externalState.patch({ id, color: 'transparent' });
-		}, 500);
-	}
-}, 50);
-
-const interval = setInterval(function() {
-	const newData = createData(20);
-	data = [...data, ...newData];
-	externalState.put(newData);
-	if (data.length > 500) {
-		clearInterval(interval);
-	}
-}, 2000);

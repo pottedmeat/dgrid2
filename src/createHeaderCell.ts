@@ -1,8 +1,8 @@
 import { VNodeProperties } from '@dojo/interfaces/vdom';
-import { Widget, WidgetMixin, WidgetProperties, WidgetFactory, DNode } from '@dojo/widgets/interfaces';
-import createWidgetBase from '@dojo/widgets/createWidgetBase';
+import { Widget, WidgetMixin, WidgetProperties, WidgetFactory, DNode } from '@dojo/widget-core/interfaces';
+import createWidgetBase from '@dojo/widget-core/createWidgetBase';
 import { assign } from '@dojo/core/lang';
-import { v } from '@dojo/widgets/d';
+import { v } from '@dojo/widget-core/d';
 import { Column, SortDetail } from './createDgrid';
 
 export interface DgridHeaderProperties extends WidgetProperties {
@@ -41,7 +41,7 @@ const createDgridHeader: DgridHeaderFactory = createWidgetBase
 						'dgrid-sort-down': sortDetails.descending
 					} : {};
 
-					const onclick = column.sortable ? { onclick: this.onSortRequest, bind: this } : {};
+					const onclick = column.sortable ? { onclick: this.onSortRequest } : {};
 
 					return assign({ classes, role: 'columnheader' }, onclick);
 				}

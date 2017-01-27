@@ -1,10 +1,10 @@
 import { VNodeProperties } from '@dojo/interfaces/vdom';
-import { Widget, WidgetMixin, WidgetProperties, WidgetFactory, DNode, PropertiesChangeEvent } from '@dojo/widgets/interfaces';
-import createWidgetBase from '@dojo/widgets/createWidgetBase';
+import { Widget, WidgetMixin, WidgetProperties, WidgetFactory, DNode, PropertiesChangeEvent } from '@dojo/widget-core/interfaces';
+import createWidgetBase from '@dojo/widget-core/createWidgetBase';
 import { includes } from '@dojo/shim/array';
-import { w } from '@dojo/widgets/d';
-import { FactoryRegistryInterface } from '@dojo/widgets/interfaces';
-import FactoryRegistry from '@dojo/widgets/FactoryRegistry';
+import { w } from '@dojo/widget-core/d';
+import { FactoryRegistryInterface } from '@dojo/widget-core/interfaces';
+import FactoryRegistry from '@dojo/widget-core/FactoryRegistry';
 
 import createBody from './createBody';
 import createRow from './createRow';
@@ -34,11 +34,11 @@ export interface Column {
 	sortable?: boolean;
 	color?: string;
 	renderer?: (value: string) => string;
+	renderExpando?: boolean;
 }
 
 export interface TreeProperties {
-	onCollapseRequest(grid: Dgrid, item: any): void;
-	onExpandRequest(grid: Dgrid, item: any): void;
+	onToggleExpandedRequest(item: ItemProperties): void;
 }
 
 export interface ItemProperties {
@@ -75,14 +75,14 @@ export interface PaginationDetails {
 
 export interface PaginationProperties {
 	itemsPerPage: number;
-	onPaginationRequest(paginationDetails: PaginationDetails): void;
+	onPaginationRequest?(paginationDetails: PaginationDetails): void;
 }
 
 export interface DgridProperties extends WidgetProperties {
 	columns: Column[];
 	customRow?: any;
 	customCell?: any;
-	data: DataProperties;
+	data?: DataProperties;
 	tree?: TreeProperties;
 	pagination?: PaginationProperties;
 }
@@ -116,7 +116,9 @@ const createDgrid: DgridFactory = createWidgetBase
 							sortDetails,
 							onSortRequest
 						},
-						tree,
+						tree: {
+							onToggleExpandedRequest = false
+						} = {},
 						pagination: {
 							itemsPerPage = -1,
 							onPaginationRequest = false
@@ -134,7 +136,8 @@ const createDgrid: DgridFactory = createWidgetBase
 					w('dgrid-body', {
 						registry,
 						columns,
-						items
+						items,
+						onToggleExpandedRequest: (onToggleExpandedRequest && onToggleExpandedRequest.bind(this))
 					}),
 					w('dgrid-footer', {
 						registry,

@@ -1,7 +1,7 @@
 import { VNodeProperties } from '@dojo/interfaces/vdom';
-import { Widget, WidgetMixin, WidgetProperties, WidgetFactory, DNode } from '@dojo/widgets/interfaces';
-import createWidgetBase from '@dojo/widgets/createWidgetBase';
-import { v } from '@dojo/widgets/d';
+import { Widget, WidgetMixin, WidgetProperties, WidgetFactory, DNode } from '@dojo/widget-core/interfaces';
+import createWidgetBase from '@dojo/widget-core/createWidgetBase';
+import { v } from '@dojo/widget-core/d';
 import { PaginationProperties, PaginationDetails }  from './createDgrid';
 
 export interface DgridFooterProperties extends WidgetProperties {
@@ -29,7 +29,7 @@ const createDgridFooter: DgridFooterFactory = createWidgetBase
 		onClick(this: DgridFooter, evt: any) {
 			this.properties.onPaginationRequest && this.properties.onPaginationRequest({
 				pageNumber: parseInt(evt.target.getAttribute('page'), 10)
-			);
+			});
 		},
 		createPageLink(this: DgridFooter, page: string, visable: boolean, disabled: boolean): DNode {
 			if (visable) {
@@ -61,7 +61,7 @@ const createDgridFooter: DgridFooterFactory = createWidgetBase
 							this.createPageLink(String(pageNumber + 1), Boolean(pageNumber + 1 < totalPages), false),
 							this.createPageLink(String(pageNumber + 2), Boolean(pageNumber + 2 < totalPages), false),
 							pageNumber !== totalPages ? v('span.dgrid-page-skip', [ '...' ]) : null,
-							v('span.dgrid-page-link', { onclick: this.onClick, bind: this, page: String(totalPages), classes: { 'dgrid-page-disabled': pageNumber === totalPages } }, [ String(totalPages) ])
+							v('span.dgrid-page-link', { onclick: this.onClick, page: String(totalPages), classes: { 'dgrid-page-disabled': pageNumber === totalPages } }, [ String(totalPages) ])
 						]),
 						v('span.dgrid-next.dgrid-page-link', { onclick: this.onClick, page: String(pageNumber + 1), classes: { 'dgrid-page-disabled': ((pageNumber * rangeCount) >= totalLength) } }, [ '>' ])
 					])

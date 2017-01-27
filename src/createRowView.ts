@@ -1,14 +1,16 @@
 import { VNodeProperties } from '@dojo/interfaces/vdom';
-import { Widget, WidgetMixin, WidgetProperties, WidgetFactory, DNode } from '@dojo/widgets/interfaces';
-import createWidgetBase from '@dojo/widgets/createWidgetBase';
-import registryMixin, { RegistryMixin, RegistryMixinProperties } from '@dojo/widgets/mixins/registryMixin';
-import { w } from '@dojo/widgets/d';
+import { Widget, WidgetMixin, WidgetProperties, WidgetFactory, DNode } from '@dojo/widget-core/interfaces';
+import createWidgetBase from '@dojo/widget-core/createWidgetBase';
+import registryMixin, { RegistryMixin, RegistryMixinProperties } from '@dojo/widget-core/mixins/registryMixin';
+import { w } from '@dojo/widget-core/d';
 
-import { Column } from './createDgrid';
+import { Column, ItemProperties } from './createDgrid';
 
 export interface DgridRowViewProperties extends WidgetProperties, RegistryMixinProperties {
 	item: any;
 	columns: Column[];
+	onToggleExpandedRequest(item: ItemProperties): void;
+
 }
 
 export interface DgridRowViewMixin extends WidgetMixin<DgridRowViewProperties>, RegistryMixin { }
@@ -29,10 +31,26 @@ const createDgridRowView: DgridRowViewFactory = createWidgetBase
 				}
 			],
 			getChildrenNodes(this: DgridRowView): DNode[] {
-				const { properties: { item, columns = [] } } = this;
+				const {
+					properties: {
+						item,
+						columns = [],
+						onToggleExpandedRequest
+					}
+				} = this;
 
-				return columns.map(({ id, renderer }) => {
-					return w('dgrid-cell', { key: id, data: item.data[id], renderer });
+				return columns.map(({ id, field, renderer, renderExpando }) => {
+					return w('dgrid-cell', {
+						key: id,
+						item: item,
+						data: item.data[field],
+						expandedLevel: item.expandedLevel,
+						isExpanded: item.isExpanded,
+						canExpand: item.canExpand,
+						renderer,
+						renderExpando,
+						onToggleExpandedRequest
+					});
 				});
 			}
 		}
