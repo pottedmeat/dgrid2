@@ -49,7 +49,7 @@ const createDgridFooter: DgridFooterFactory = createWidgetBase
 			const totalPages = Math.ceil(totalLength / rangeCount);
 			return [
 				(itemsPerPage > 0) ? v('div.dgrid-pagination', [
-					v('div.dgrid-status', [ `${rangeStart + 1} - ${rangeStart + rangeCount} of ${totalLength} results` ]),
+					v('div.dgrid-status', [ `${rangeStart + 1} - ${Math.min(rangeStart + rangeCount, totalLength)} of ${totalLength} results` ]),
 					v('div.dgrid-navigation', [
 						v('span.dgrid-previous.dgrid-page-link', { onclick: this.onClick, page: String(pageNumber - 1), classes: { 'dgrid-page-disabled': (pageNumber === 1) } }, [ '<' ]),
 						v('span.dgrid-pagination-links', [

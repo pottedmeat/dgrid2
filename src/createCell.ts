@@ -6,7 +6,7 @@ import { v } from '@dojo/widget-core/d';
 export interface DgridCellProperties extends WidgetProperties {
 	data: string;
 	column: Column;
-	item: ItemProperties,
+	item: ItemProperties;
 	expandedLevel: number;
 	isExpanded: boolean;
 	canExpand: boolean;

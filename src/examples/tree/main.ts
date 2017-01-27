@@ -1,12 +1,9 @@
 import createProjectorMixin from '@dojo/widget-core/mixins/createProjectorMixin';
-import createWidgetBase from '@dojo/widget-core/createWidgetBase';
-import uuid from '@dojo/core/uuid';
 
 import createDgrid from '../../createDgrid';
 import createArrayDataProvider from '../../createArrayDataProvider';
-import { assign } from '@dojo/core/lang';
 
-var countries = [
+const countries = [
 	{ id: 'AF', name: 'Africa', type: 'continent', population: '900 million', area: '30,221,532 sq km',
 		timezone: '-1 UTC to +4 UTC'},
 	{ id: 'EG', name: 'Egypt', type: 'country', parent: 'AF' },
@@ -59,21 +56,28 @@ var countries = [
 ];
 
 const columns = [
-	{ id: 'name', renderExpando: true, label: 'Name', field:'name' },
-	{ id: 'type', label: 'Type', field:'type' },
+	{ id: 'name', renderExpando: true, label: 'Name', field: 'name' },
+	{ id: 'type', label: 'Type', field: 'type' },
 	{ id: 'population', label: 'Population', field: 'population' },
 	{ id: 'timezone', label: 'Timezone', field: 'timezone' }
 ];
 
-const paginatedDataProvider = createArrayDataProvider({ items: countries });
+const dgrid = createDgrid.mixin(createProjectorMixin)(createArrayDataProvider({
+	items: countries,
+	properties: {
+		columns: columns
+	}
+}));
 
-const dgrid = createDgrid.mixin(createProjectorMixin)(
-	createArrayDataProvider({
-		items: countries,
-		properties: {
-			columns: columns
+const paginatedGrid = createDgrid.mixin(createProjectorMixin)(createArrayDataProvider({
+	items: countries,
+	properties: {
+		columns: columns,
+		pagination: {
+			itemsPerPage: 10
 		}
-	})
-);
+	}
+}));
 
 dgrid.append();
+paginatedGrid.append();

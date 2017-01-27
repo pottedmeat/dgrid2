@@ -1,12 +1,7 @@
-import { createQueryStore } from '@dojo/stores/store/mixins/createQueryTransformMixin';
 import createProjectorMixin from '@dojo/widget-core/mixins/createProjectorMixin';
-import createWidgetBase from '@dojo/widget-core/createWidgetBase';
 import uuid from '@dojo/core/uuid';
-import createCustomCell from './createCustomCell';
-
 import createDgrid from '../createDgrid';
 import createArrayDataProvider from '../createArrayDataProvider';
-import { assign } from '@dojo/core/lang';
 
 const locations = [
 	'Dive Bar',
@@ -78,7 +73,14 @@ const columns = [
 	}
 ];
 
-const paginatedDataProvider = createArrayDataProvider({
+const dgrid = createDgrid.mixin(createProjectorMixin)(createArrayDataProvider({
+	items: data,
+	properties: {
+		columns: columns
+	}
+}));
+
+const paginatedGrid = createDgrid.mixin(createProjectorMixin)(createArrayDataProvider({
 	items: data,
 	properties: {
 		columns: columns,
@@ -86,26 +88,7 @@ const paginatedDataProvider = createArrayDataProvider({
 			itemsPerPage: 25
 		}
 	}
-});
-
-const paginatedGrid = createDgrid.mixin(createProjectorMixin)({
-	properties: assign({
-		columns
-	}, paginatedDataProvider.properties)
-});
-
-const dataProvider = createArrayDataProvider({
-	items: data,
-	properties: {
-		columns: columns
-	}
-});
-
-const dgrid = createDgrid.mixin(createProjectorMixin)({
-	properties: assign({
-		columns
-	}, dataProvider.properties)
-});
+}));
 
 dgrid.append();
 paginatedGrid.append();
