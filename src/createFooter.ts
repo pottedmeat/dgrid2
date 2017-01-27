@@ -50,21 +50,22 @@ const createDgridFooter: DgridFooterFactory = createWidgetBase
 			return [
 				(itemsPerPage > 0) ? v('div.dgrid-pagination', [
 					v('div.dgrid-status', [ `${rangeStart + 1} - ${Math.min(rangeStart + rangeCount, totalLength)} of ${totalLength} results` ]),
-					v('div.dgrid-navigation', [
-						v('span.dgrid-previous.dgrid-page-link', { onclick: this.onClick, page: String(pageNumber - 1), classes: { 'dgrid-page-disabled': (pageNumber === 1) } }, [ '<' ]),
-						v('span.dgrid-pagination-links', [
-							v('span.dgrid-page-link', { onclick: this.onClick, page: '1', classes: { 'dgrid-page-disabled': pageNumber === 1 } }, [ '1' ]),
-							pageNumber > 3 ? v('span.dgrid-page-skip', [ '...' ]) : null,
-							this.createPageLink(String(pageNumber - 2), Boolean(pageNumber - 2 > 1), false),
-							this.createPageLink(String(pageNumber - 1), Boolean(pageNumber - 1 > 1), false),
-							this.createPageLink(String(pageNumber), Boolean(pageNumber !== 1 && pageNumber !== totalPages), true),
-							this.createPageLink(String(pageNumber + 1), Boolean(pageNumber + 1 < totalPages), false),
-							this.createPageLink(String(pageNumber + 2), Boolean(pageNumber + 2 < totalPages), false),
-							pageNumber !== totalPages ? v('span.dgrid-page-skip', [ '...' ]) : null,
-							v('span.dgrid-page-link', { onclick: this.onClick, page: String(totalPages), classes: { 'dgrid-page-disabled': pageNumber === totalPages } }, [ String(totalPages) ])
-						]),
-						v('span.dgrid-next.dgrid-page-link', { onclick: this.onClick, page: String(pageNumber + 1), classes: { 'dgrid-page-disabled': ((pageNumber * rangeCount) >= totalLength) } }, [ '>' ])
-					])
+					(totalLength > rangeCount) ?
+						v('div.dgrid-navigation', [
+							v('span.dgrid-previous.dgrid-page-link', { onclick: this.onClick, page: String(pageNumber - 1), classes: { 'dgrid-page-disabled': (pageNumber === 1) } }, [ '<' ]),
+							v('span.dgrid-pagination-links', [
+								v('span.dgrid-page-link', { onclick: this.onClick, page: '1', classes: { 'dgrid-page-disabled': pageNumber === 1 } }, [ '1' ]),
+								pageNumber > 3 ? v('span.dgrid-page-skip', [ '...' ]) : null,
+								this.createPageLink(String(pageNumber - 2), Boolean(pageNumber - 2 > 1), false),
+								this.createPageLink(String(pageNumber - 1), Boolean(pageNumber - 1 > 1), false),
+								this.createPageLink(String(pageNumber), Boolean(pageNumber !== 1 && pageNumber !== totalPages), true),
+								this.createPageLink(String(pageNumber + 1), Boolean(pageNumber + 1 < totalPages), false),
+								this.createPageLink(String(pageNumber + 2), Boolean(pageNumber + 2 < totalPages), false),
+								pageNumber !== totalPages ? v('span.dgrid-page-skip', [ '...' ]) : null,
+								v('span.dgrid-page-link', { onclick: this.onClick, page: String(totalPages), classes: { 'dgrid-page-disabled': pageNumber === totalPages } }, [ String(totalPages) ])
+							]),
+							v('span.dgrid-next.dgrid-page-link', { onclick: this.onClick, page: String(pageNumber + 1), classes: { 'dgrid-page-disabled': ((pageNumber * rangeCount) >= totalLength) } }, [ '>' ])
+						]) : null
 				]) : v('div.dgrid-status', [ `${totalLength} results` ])
 			];
 		}
